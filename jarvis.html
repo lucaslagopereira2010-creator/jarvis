@@ -3,325 +3,519 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVIS - Activado por aplausos</title>
+<title>J.A.R.V.I.S // Sistema</title>
 <style>
-  :root{ --cyan:#38bdf8; --txt:#e2e8f0; }
+  :root{
+    --cyan:#36e0ff; --cyan-soft:#7fe9ff; --gold:#ffb347; --red:#ff5d6c;
+    --txt:#cfeffb; --bg0:#01060d; --bg1:#04101c;
+    --mono:"SFMono-Regular",Consolas,"Roboto Mono",ui-monospace,monospace;
+  }
   *{ box-sizing:border-box; }
-  body{ margin:0; min-height:100vh; background:radial-gradient(circle at 50% 0%, #0f2030, #060a10);
-        color:var(--txt); font-family:system-ui,"Segoe UI",Roboto,sans-serif;
-        display:flex; flex-direction:column; align-items:center; justify-content:center;
-        gap:20px; padding:24px; text-align:center; }
-  h1{ font-weight:800; letter-spacing:.32em; margin:0; color:var(--cyan);
-      text-shadow:0 0 22px rgba(56,189,248,.6); }
-  p.sub{ margin:0; opacity:.7; }
-  .orb{ width:140px; height:140px; border-radius:50%; border:3px solid var(--cyan);
-        display:flex; align-items:center; justify-content:center; font-size:.9rem; color:var(--cyan);
-        box-shadow:0 0 40px rgba(56,189,248,.3) inset, 0 0 30px rgba(56,189,248,.35);
-        transition:transform .08s ease, box-shadow .2s ease; }
-  .orb.listen{ animation:pulse 2s infinite; }
-  .orb.boom{ transform:scale(1.25);
-             box-shadow:0 0 90px rgba(56,189,248,.95) inset, 0 0 70px rgba(56,189,248,.95); }
-  @keyframes pulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-  #activar{ font-size:1.3rem; font-weight:700; padding:16px 34px; border:none; border-radius:999px;
-            background:linear-gradient(135deg,#0ea5e9,#2563eb); color:#fff; cursor:pointer;
-            box-shadow:0 0 30px rgba(56,189,248,.5); transition:transform .1s; }
-  #activar:active{ transform:scale(.97); }
-  #activar:disabled{ opacity:.5; cursor:default; }
-  #estado{ font-size:1.05rem; min-height:1.4em; }
-  .row{ display:flex; align-items:center; gap:10px; opacity:.85; font-size:.9rem; }
-  input[type=range]{ width:170px; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--bg0); color:var(--txt); overflow:hidden;
+    font-family:var(--mono); letter-spacing:.05em;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* fondo animado */
+  #fondo{ position:fixed; inset:0; z-index:0; }
+  .scan{ position:fixed; inset:0; z-index:5; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(54,224,255,.035) 0 1px, transparent 1px 3px);
+    mix-blend-mode:screen; animation:scanmove 8s linear infinite; }
+  @keyframes scanmove{ from{background-position:0 0} to{background-position:0 600px} }
+  .vign{ position:fixed; inset:0; z-index:6; pointer-events:none;
+    box-shadow:inset 0 0 240px 40px rgba(0,0,0,.85); }
 
-  .panel{ width:100%; max-width:560px; background:rgba(15,32,48,.55);
-          border:1px solid rgba(56,189,248,.25); border-radius:16px; padding:18px;
-          display:flex; flex-direction:column; gap:12px; }
-  .panel-title{ font-weight:700; color:var(--cyan); }
-  .hint{ margin:0; font-size:.9rem; opacity:.85; }
-  .hint a{ color:var(--cyan); }
-  .iarow{ display:flex; gap:8px; flex-wrap:wrap; }
-  .iarow input{ flex:1 1 200px; min-width:0; padding:11px 12px; border-radius:10px;
-                border:1px solid rgba(148,163,184,.4); background:#0b1622; color:var(--txt); font-size:1rem; }
-  .iarow button{ padding:11px 16px; border:none; border-radius:10px; background:#2563eb; color:#fff;
-                 font-weight:700; cursor:pointer; }
-  .iarow button:active{ transform:scale(.97); }
-  #hablar{ background:#0ea5e9; }
-  #ia-respuesta{ min-height:1.2em; font-size:1.02rem; line-height:1.5; text-align:left; white-space:pre-wrap; }
-  .mini{ align-self:flex-start; background:none; border:none; color:#94a3b8; font-size:.8rem;
-         cursor:pointer; text-decoration:underline; padding:0; }
+  /* marco HUD */
+  .frame{ position:fixed; inset:14px; z-index:7; pointer-events:none;
+    border:1px solid rgba(54,224,255,.18); border-radius:10px; }
+  .corner{ position:fixed; width:40px; height:40px; border:2px solid var(--cyan); z-index:8;
+    pointer-events:none; filter:drop-shadow(0 0 6px var(--cyan)); }
+  .corner.tl{ top:10px; left:10px; border-right:0; border-bottom:0; }
+  .corner.tr{ top:10px; right:10px; border-left:0; border-bottom:0; }
+  .corner.bl{ bottom:10px; left:10px; border-right:0; border-top:0; }
+  .corner.br{ bottom:10px; right:10px; border-left:0; border-top:0; }
 
-  #aviso{ max-width:560px; background:#7f1d1d; color:#fff; padding:12px 16px;
-          border-radius:12px; display:none; }
-  #aviso b{ color:#fde68a; }
-  .links{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
-  .links a{ color:var(--cyan); font-weight:700; }
-  footer{ opacity:.55; font-size:.8rem; max-width:560px; line-height:1.5; }
+  .ui{ position:relative; z-index:10; height:100%; display:flex; flex-direction:column;
+       padding:26px 30px; gap:10px; }
+
+  header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  .panel-hud{ border:1px solid rgba(54,224,255,.25); background:rgba(4,16,28,.55);
+    border-radius:8px; padding:10px 14px; backdrop-filter:blur(2px); }
+  .lbl{ color:var(--cyan); font-size:.62rem; opacity:.8; letter-spacing:.22em; }
+  #syslog{ font-size:.72rem; line-height:1.5; min-width:240px; min-height:90px; color:var(--cyan-soft); }
+  #syslog .ok{ color:var(--cyan); } #syslog .gd{ color:var(--gold); }
+  .right{ text-align:right; }
+  #reloj{ font-size:1.5rem; color:#eafaff; text-shadow:0 0 12px rgba(54,224,255,.6); }
+  #fecha{ font-size:.66rem; opacity:.7; }
+  .ver{ color:var(--gold); font-size:.62rem; letter-spacing:.3em; margin-top:6px; }
+  .bar{ height:6px; width:170px; background:rgba(54,224,255,.12); border-radius:4px; overflow:hidden; margin-top:6px; }
+  .bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--gold)); transition:width .08s; }
+
+  /* centro: reactor */
+  main{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  .reactor{ position:relative; width:min(58vmin,420px); height:min(58vmin,420px); }
+  .reactor canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .ring{ position:absolute; inset:0; border-radius:50%; border:1px solid rgba(54,224,255,.25); }
+  .ring.r1{ inset:6%; border-style:dashed; border-color:rgba(54,224,255,.4); animation:spin 18s linear infinite; }
+  .ring.r2{ inset:16%; border-width:2px; border-color:rgba(255,179,71,.35);
+            border-top-color:transparent; border-bottom-color:transparent; animation:spin 9s linear infinite reverse; }
+  .ring.r3{ inset:26%; border-style:dotted; border-color:rgba(54,224,255,.5); animation:spin 26s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg) } }
+  .core-label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; pointer-events:none; }
+  .core-label .big{ font-size:1.05rem; letter-spacing:.34em; color:#eafaff; text-shadow:0 0 16px var(--cyan); }
+  .core-label .small{ font-size:.62rem; color:var(--cyan); opacity:.85; margin-top:4px; }
+  #estado{ font-size:.84rem; color:var(--cyan-soft); min-height:1.3em; letter-spacing:.12em; }
+
+  /* consola IA */
+  .consola{ z-index:10; border:1px solid rgba(54,224,255,.28); background:rgba(2,12,22,.72);
+    border-radius:10px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+  .consola .lbl-row{ display:flex; justify-content:space-between; align-items:center; }
+  .row-in{ display:flex; gap:8px; flex-wrap:wrap; }
+  .row-in input{ flex:1 1 220px; min-width:0; background:#020c16; color:#eafaff;
+    border:1px solid rgba(54,224,255,.35); border-radius:8px; padding:11px 12px; font-family:var(--mono); font-size:.95rem; }
+  .row-in input::placeholder{ color:rgba(207,239,251,.4); }
+  button{ font-family:var(--mono); cursor:pointer; border:none; border-radius:8px; font-weight:700;
+    letter-spacing:.08em; transition:transform .08s, box-shadow .2s; }
+  button:active{ transform:scale(.96); }
+  .btn{ padding:11px 16px; background:linear-gradient(135deg,#0a7ea4,#1456c4); color:#eafaff;
+    box-shadow:0 0 16px rgba(54,224,255,.35); }
+  .btn.mic{ background:linear-gradient(135deg,#0a7ea4,#0aa0c4); }
+  .btn.gold{ background:linear-gradient(135deg,#b46a12,#e0941f); color:#1a0f00; }
+  #respuesta{ font-size:.95rem; line-height:1.55; white-space:pre-wrap; color:#eafaff; min-height:1.2em;
+    border-left:2px solid var(--cyan); padding-left:12px; }
+  #respuesta.err{ border-left-color:var(--red); color:#ffd7db; }
+  .hint{ font-size:.72rem; opacity:.8; } .hint a{ color:var(--cyan); }
+  .link-btn{ background:none; color:#8fb6c7; font-size:.72rem; text-decoration:underline; padding:0; }
+
+  /* ajustes */
+  #ajustes{ display:none; flex-direction:column; gap:10px; border-top:1px dashed rgba(54,224,255,.2); padding-top:10px; }
+  .aj-row{ display:flex; align-items:center; gap:10px; font-size:.78rem; flex-wrap:wrap; }
+  .aj-row label{ color:var(--cyan); min-width:96px; }
+  select,input[type=range]{ font-family:var(--mono); }
+  select{ background:#020c16; color:#eafaff; border:1px solid rgba(54,224,255,.35); border-radius:6px; padding:7px; max-width:260px; }
+  input[type=range]{ accent-color:var(--cyan); }
+
+  #aviso{ z-index:10; background:rgba(127,29,29,.85); border:1px solid var(--red); color:#fff;
+    padding:10px 14px; border-radius:8px; font-size:.82rem; display:none; }
+  #aviso b{ color:var(--gold); }
+  .links{ display:flex; gap:14px; flex-wrap:wrap; } .links a{ color:var(--cyan); font-weight:700; font-size:.82rem; }
+
+  /* overlay de arranque */
+  #arranque{ position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; gap:18px;
+    align-items:center; justify-content:center; background:radial-gradient(circle,#03121f 0%,#01060d 70%);
+    cursor:pointer; text-align:center; padding:24px; }
+  #arranque h1{ font-size:clamp(2rem,9vw,5rem); letter-spacing:.4em; margin:0; color:var(--cyan);
+    text-shadow:0 0 30px rgba(54,224,255,.7); }
+  #arranque p{ color:var(--cyan-soft); letter-spacing:.3em; font-size:.8rem; animation:blink 1.4s infinite; }
+  @keyframes blink{ 50%{opacity:.25} }
+  .hidden{ display:none !important; }
+  @media (max-width:680px){ .ui{ padding:18px; } #syslog{ min-width:0; } header{ font-size:.9em; } }
 </style>
 </head>
 <body>
-  <h1>J.A.R.V.I.S</h1>
-  <p class="sub">Aplaude y reaccionaré</p>
-  <div class="orb" id="orb">en espera</div>
-  <button id="activar">ACTIVAR JARVIS&nbsp;👏</button>
-  <div id="estado">Pulsa "Activar" y permite el micrófono.</div>
+  <canvas id="fondo"></canvas>
+  <div class="scan"></div><div class="vign"></div>
+  <div class="frame"></div>
+  <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
 
-  <div class="row">
-    Sensibilidad
-    <input type="range" id="sens" min="0.08" max="0.6" step="0.01" value="0.25">
-    <span id="sensval">0.25</span>
+  <div class="ui">
+    <header>
+      <div class="panel-hud">
+        <div class="lbl">REGISTRO DEL SISTEMA</div>
+        <div id="syslog"></div>
+        <div class="lbl" style="margin-top:6px;">NIVEL DE ENTRADA</div>
+        <div class="bar"><i id="nivel"></i></div>
+      </div>
+      <div class="panel-hud right">
+        <div class="lbl">HORA LOCAL</div>
+        <div id="reloj">--:--:--</div>
+        <div id="fecha">—</div>
+        <div class="ver">J.A.R.V.I.S · MARK III</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="reactor">
+        <canvas id="reactor"></canvas>
+        <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <div class="core-label">
+          <div class="big">J.A.R.V.I.S</div>
+          <div class="small" id="coreMode">EN ESPERA</div>
+        </div>
+      </div>
+      <div id="estado">Inicializando núcleo…</div>
+    </main>
+
+    <div class="consola">
+      <div class="lbl-row">
+        <span class="lbl">CONSOLA · PREGÚNTAME LO QUE QUIERAS</span>
+        <button class="link-btn" id="toggleAjustes">⚙ AJUSTES</button>
+      </div>
+
+      <div id="ia-config">
+        <p class="hint">Para responder preguntas necesito una clave <b>gratuita</b> de Google Gemini
+          (<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">consíguela aquí</a>). Se guarda solo en este equipo.</p>
+        <div class="row-in">
+          <input type="password" id="claveInput" placeholder="Pega aquí tu API key de Google…">
+          <button class="btn gold" id="guardarClave">GUARDAR</button>
+        </div>
+      </div>
+
+      <div id="ia-chat" class="hidden">
+        <div class="row-in">
+          <input type="text" id="pregunta" placeholder="Escribe tu pregunta…">
+          <button class="btn" id="preguntar">PREGUNTAR</button>
+          <button class="btn mic" id="hablar" title="Preguntar por voz">🎤</button>
+        </div>
+        <div id="respuesta"></div>
+      </div>
+
+      <div id="ajustes">
+        <div class="aj-row">
+          <label>Voz</label>
+          <select id="selVoz"></select>
+          <button class="btn" id="probarVoz" style="padding:7px 12px;">Probar</button>
+        </div>
+        <div class="aj-row">
+          <label>Gravedad</label>
+          <input type="range" id="pitch" min="0" max="1" step="0.05" value="0.5">
+          <span id="pitchval">0.50</span>
+        </div>
+        <div class="aj-row">
+          <label>Sensibilidad</label>
+          <input type="range" id="sens" min="0.08" max="0.6" step="0.01" value="0.22">
+          <span id="sensval">0.22</span>
+        </div>
+        <div class="aj-row">
+          <button class="link-btn" id="borrarClave">Cambiar / borrar clave de la IA</button>
+        </div>
+      </div>
+
+      <div id="aviso"></div>
+      <div class="links" id="links"></div>
+    </div>
   </div>
 
-  <!-- ===== IA: pregúntale lo que sea ===== -->
-  <div class="panel">
-    <div class="panel-title">🤖 Pregúntale a JARVIS</div>
-    <div id="ia-config">
-      <p class="hint">Para que JARVIS responda preguntas, pega tu clave <b>gratuita</b> de Google Gemini
-        (<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">consíguela aquí en 1 minuto</a>).
-        Se guarda solo en este dispositivo.</p>
-      <div class="iarow">
-        <input type="password" id="claveInput" placeholder="Pega aquí tu API key de Google">
-        <button id="guardarClave">Guardar</button>
-      </div>
-    </div>
-    <div id="ia-chat" style="display:none;">
-      <div class="iarow">
-        <input type="text" id="pregunta" placeholder="Escribe tu pregunta...">
-        <button id="preguntar">Preguntar</button>
-        <button id="hablar" title="Preguntar por voz">🎤</button>
-      </div>
-      <div id="ia-respuesta"></div>
-      <button id="borrarClave" class="mini">Cambiar / borrar clave</button>
-    </div>
+  <div id="arranque">
+    <h1>J.A.R.V.I.S</h1>
+    <p id="arranqueTxt">TOCA EN CUALQUIER PARTE PARA INICIAR</p>
   </div>
-
-  <div id="aviso"></div>
-  <div class="links" id="links"></div>
-
-  <footer>
-    Deja esta pestaña abierta para que JARVIS siga escuchando. Si las webs no se
-    abren solas la primera vez, permite las <b>ventanas emergentes</b> de esta página.
-  </footer>
 
 <script>
 "use strict";
-
-/* ====== LO QUE HACE JARVIS (puedes editar estos valores) ====== */
+/* ================= CONFIGURACIÓN ================= */
 const SALUDO      = "Hola Lucas, bienvenido a casa, te espera un gran día";
 const URL_GEMINI  = "https://gemini.google.com/share/d2dfbce3971b";
 const URL_YOUTUBE = "https://youtu.be/Mm3Um3-kkpM?si=ZHmPi8yc2vw_tLy9";
-const MODELO_IA   = "gemini-2.0-flash";   // modelo de la IA (puedes cambiarlo)
-/* ============================================================== */
+/* La IA prueba estos modelos en orden si alguno está sin cupo (limit:0 / 429). */
+const MODELOS = ["gemini-2.0-flash","gemini-2.0-flash-lite","gemini-1.5-flash","gemini-1.5-flash-8b"];
+/* ================================================= */
 
 const $ = s => document.querySelector(s);
-const orb = $("#orb"), estado = $("#estado"), aviso = $("#aviso");
+let umbral = 0.22, pitch = 0.5;
+let ocupado = false, escuchando = false, iniciado = false, ultimo = 0;
+let analyser = null, freq = null;
 
-let umbral = 0.25;
-let ocupado = false;     // true mientras JARVIS reacciona o habla (pausa el aplauso)
-let escuchando = false;
-let ultimo = 0;
+/* ---------------- Registro del sistema (typewriter) ---------------- */
+const syslog = $("#syslog");
+function log(txt, cls){
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  syslog.appendChild(line);
+  let i = 0;
+  (function type(){
+    line.textContent = "> " + txt.slice(0, i);
+    if (i++ <= txt.length) setTimeout(type, 12);
+  })();
+  while (syslog.childElementCount > 6) syslog.removeChild(syslog.firstChild);
+}
 
-$("#sens").addEventListener("input", e => {
-  umbral = parseFloat(e.target.value);
-  $("#sensval").textContent = umbral.toFixed(2);
-});
+/* ---------------- Reloj ---------------- */
+function tic(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  $("#reloj").textContent = p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  $("#fecha").textContent = d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"}).toUpperCase();
+}
+setInterval(tic,1000); tic();
 
-/* ---------- Voz del navegador (grave, en español) ---------- */
+/* ---------------- Fondo: partículas + rejilla ---------------- */
+(function fondo(){
+  const c = $("#fondo"), x = c.getContext("2d");
+  let W,H,parts;
+  function resize(){
+    W = c.width = innerWidth; H = c.height = innerHeight;
+    parts = Array.from({length: Math.min(90, Math.floor(W*H/16000))}, () => ({
+      x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, r:Math.random()*1.6+.4
+    }));
+  }
+  addEventListener("resize", resize); resize();
+  (function draw(){
+    requestAnimationFrame(draw);
+    x.clearRect(0,0,W,H);
+    x.strokeStyle = "rgba(54,224,255,.05)"; x.lineWidth = 1;
+    for (let gx=0; gx<W; gx+=46){ x.beginPath(); x.moveTo(gx,0); x.lineTo(gx,H); x.stroke(); }
+    for (let gy=0; gy<H; gy+=46){ x.beginPath(); x.moveTo(0,gy); x.lineTo(W,gy); x.stroke(); }
+    for (const p of parts){
+      p.x=(p.x+p.vx+W)%W; p.y=(p.y+p.vy+H)%H;
+      x.fillStyle = "rgba(54,224,255,.5)";
+      x.beginPath(); x.arc(p.x,p.y,p.r,0,7); x.fill();
+    }
+  })();
+})();
+
+/* ---------------- Reactor arc (visualizador de audio) ---------------- */
+(function reactor(){
+  const c = $("#reactor"), x = c.getContext("2d");
+  function size(){ const s = c.clientWidth*devicePixelRatio; c.width=s; c.height=s; }
+  addEventListener("resize", size); setTimeout(size,50); size();
+  let rot = 0;
+  (function draw(){
+    requestAnimationFrame(draw);
+    const w=c.width, h=c.height, cx=w/2, cy=h/2, R=Math.min(cx,cy);
+    x.clearRect(0,0,w,h);
+    rot += 0.0035;
+    let nivel = 0;
+    const bars = 96;
+    if (analyser){
+      analyser.getByteFrequencyData(freq);
+      const n = Math.floor(analyser.frequencyBinCount*0.55);
+      for (let i=0;i<n;i++) nivel += freq[i];
+      nivel = Math.min(1, nivel/(n*180));
+    }
+    const flare = ocupado ? 1 : 0;
+    const base = R*0.56;
+    for (let i=0;i<bars;i++){
+      const f = analyser ? freq[Math.floor(i/bars*analyser.frequencyBinCount*0.55)]/255 : 0.05+0.05*Math.sin(i+rot*30);
+      const ang = (i/bars)*Math.PI*2 + rot;
+      const len = R*0.06 + f*R*0.34;
+      const x1 = cx+Math.cos(ang)*base, y1 = cy+Math.sin(ang)*base;
+      const x2 = cx+Math.cos(ang)*(base+len), y2 = cy+Math.sin(ang)*(base+len);
+      x.strokeStyle = flare
+        ? `rgba(255,179,71,${0.4+f*0.6})`
+        : `rgba(54,224,255,${0.3+f*0.7})`;
+      x.lineWidth = Math.max(1, R*0.012);
+      x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke();
+    }
+    // anillo
+    x.strokeStyle = flare ? "rgba(255,179,71,.7)" : "rgba(54,224,255,.55)";
+    x.lineWidth = Math.max(1.5, R*0.012);
+    x.beginPath(); x.arc(cx,cy,base,0,7); x.stroke();
+    // núcleo pulsante
+    const pr = R*(0.30 + nivel*0.16 + flare*0.06);
+    const g = x.createRadialGradient(cx,cy,0,cx,cy,pr);
+    const col = flare ? "255,179,71" : "54,224,255";
+    g.addColorStop(0, `rgba(${col},${0.95})`);
+    g.addColorStop(0.5, `rgba(${col},${0.35})`);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    x.fillStyle = g; x.beginPath(); x.arc(cx,cy,pr,0,7); x.fill();
+    // nivel barra header
+    $("#nivel").style.width = Math.round((analyser?nivel:0)*100) + "%";
+  })();
+})();
+
+/* ---------------- Voz (TTS del navegador) ---------------- */
+let voces = [];
+function cargarVoces(){
+  voces = speechSynthesis.getVoices();
+  const sel = $("#selVoz"); if (!sel) return;
+  if (!voces.length) return;
+  const guardada = localStorage.getItem("jarvis_voz");
+  sel.innerHTML = "";
+  voces.forEach((v,i) => {
+    const o = document.createElement("option");
+    o.value = v.name; o.textContent = `${v.name} — ${v.lang}`;
+    sel.appendChild(o);
+  });
+  const def = guardada || mejorVozMasculina();
+  if (def) sel.value = def;
+}
+function mejorVozMasculina(){
+  const m = voces.find(v => /es([-_])?ES/i.test(v.lang) && /(male|masc|álvaro|alvaro|jorge|diego|enrique|pablo|carlos|miguel)/i.test(v.name))
+        || voces.find(v => /es([-_])?(ES|MX|US|419)/i.test(v.lang) && /(male|masc|jorge|diego|juan|carlos)/i.test(v.name))
+        || voces.find(v => /es([-_])?ES/i.test(v.lang))
+        || voces.find(v => /^es/i.test(v.lang));
+  return m ? m.name : (voces[0] && voces[0].name);
+}
 function decir(texto){
-  return new Promise(resolve => {
+  return new Promise(res => {
     try{
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(texto);
-      u.lang = "es-ES";
-      const voces = speechSynthesis.getVoices();
-      const esp =
-        voces.find(v => /es([-_])?ES/i.test(v.lang) &&
-                        /(male|masc|alvaro|jorge|diego|enrique|pablo)/i.test(v.name)) ||
-        voces.find(v => /es([-_])?ES/i.test(v.lang)) ||
-        voces.find(v => /^es/i.test(v.lang));
-      if (esp) u.voice = esp;
-      u.pitch = 0.4;
+      const nombre = ($("#selVoz") && $("#selVoz").value) || mejorVozMasculina();
+      const v = voces.find(x => x.name === nombre);
+      if (v){ u.voice = v; u.lang = v.lang; } else { u.lang = "es-ES"; }
+      u.pitch = pitch;     // gravedad
       u.rate  = 0.95;
-      u.onend = resolve;
-      u.onerror = resolve;
+      u.onend = res; u.onerror = res;
       speechSynthesis.speak(u);
-    }catch(_){ resolve(); }
+    }catch(_){ res(); }
   });
 }
+speechSynthesis.onvoiceschanged = cargarVoces; cargarVoces();
 
-/* ---------- Aplauso: abrir las dos webs ---------- */
-function abrir(url){
-  const w = window.open(url, "_blank");
-  return !!w;
-}
+/* ---------------- Aplauso → reacción ---------------- */
+function abrir(url){ const w = window.open(url,"_blank"); return !!w; }
 function mostrarFallback(){
-  aviso.style.display = "block";
-  aviso.innerHTML =
-    'Chrome bloqueó las ventanas. Toca el icono de la barra de direcciones ' +
-    '(arriba, a la derecha) y elige <b>Permitir siempre</b>. Después se abrirán solas. ' +
-    'Por ahora, ábrelas a mano:';
-  $("#links").innerHTML =
-    '<a href="' + URL_GEMINI  + '" target="_blank" rel="noopener">Abrir Gemini</a>' +
-    '<a href="' + URL_YOUTUBE + '" target="_blank" rel="noopener">Abrir YouTube</a>';
+  $("#aviso").style.display = "block";
+  $("#aviso").innerHTML = 'Chrome bloqueó las ventanas. Toca el icono de la barra de direcciones '
+    + '(arriba a la derecha) y elige <b>Permitir siempre</b>. Después se abren solas. Por ahora, a mano:';
+  $("#links").innerHTML = '<a href="'+URL_GEMINI+'" target="_blank" rel="noopener">Abrir Gemini</a>'
+    + '<a href="'+URL_YOUTUBE+'" target="_blank" rel="noopener">Abrir YouTube</a>';
 }
+function modo(t){ $("#coreMode").textContent = t; }
 
 async function reaccionar(){
   if (ocupado) return;
-  ocupado = true;
-  orb.classList.add("boom");
-  estado.textContent = "👏 ¡Aplauso detectado!";
+  ocupado = true; modo("ACTIVADO"); $("#estado").textContent = "👏 APLAUSO DETECTADO — EJECUTANDO PROTOCOLO";
+  log("Aplauso detectado","gd"); log("Saludo de bienvenida…");
   await decir(SALUDO);
+  log("Abriendo enlaces…");
   const ok1 = abrir(URL_GEMINI);
-  await new Promise(r => setTimeout(r, 400));
+  await new Promise(r=>setTimeout(r,400));
   const ok2 = abrir(URL_YOUTUBE);
   if (!ok1 || !ok2) mostrarFallback();
-  setTimeout(() => {
-    orb.classList.remove("boom");
-    ultimo = performance.now();
-    ocupado = false;
-    if (escuchando) estado.textContent = "Escuchando... aplaude 👏";
-  }, 1200);
+  setTimeout(()=>{ ocupado=false; ultimo=performance.now(); modo("ESCUCHANDO");
+    if (escuchando) $("#estado").textContent = "Escuchando… aplaude 👏 o pregúntame algo"; }, 1200);
 }
 
-/* ---------- Activar micrófono + detección del aplauso ---------- */
-async function activar(){
-  $("#activar").disabled = true;
-  estado.textContent = "Pidiendo permiso del micrófono...";
-  speechSynthesis.getVoices();
-
+/* ---------------- Inicialización del micrófono ---------------- */
+async function iniciar(){
+  if (iniciado) return; iniciado = true;
+  $("#arranque").classList.add("hidden");
+  log("Inicializando núcleo","ok"); log("Solicitando micrófono…");
+  $("#estado").textContent = "Concediendo acceso al micrófono…";
   let stream;
   try{
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:false }
-    });
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:false }});
   }catch(e){
-    estado.textContent = "❌ No pude usar el micrófono: " + e.message;
-    $("#activar").disabled = false;
+    iniciado = false;
+    $("#estado").textContent = "❌ Micrófono no disponible: " + e.message;
+    $("#arranque").classList.remove("hidden");
+    $("#arranqueTxt").textContent = "PERMITE EL MICRÓFONO Y VUELVE A TOCAR";
     return;
   }
-
   const AC = window.AudioContext || window.webkitAudioContext;
   const ctx = new AC();
-  if (ctx.state === "suspended") await ctx.resume();
-
-  const src  = ctx.createMediaStreamSource(stream);
-  const proc = ctx.createScriptProcessor(2048, 1, 1);
-  const sink = ctx.createGain();
-  sink.gain.value = 0;
-  src.connect(proc);
-  proc.connect(sink);
-  sink.connect(ctx.destination);
-
-  proc.onaudioprocess = (e) => {
+  if (ctx.state === "suspended") { try{ await ctx.resume(); }catch(_){} }
+  const src = ctx.createMediaStreamSource(stream);
+  analyser = ctx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.78;
+  freq = new Uint8Array(analyser.frequencyBinCount);
+  src.connect(analyser);
+  const proc = ctx.createScriptProcessor(2048,1,1);
+  const sink = ctx.createGain(); sink.gain.value = 0;
+  src.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
+  proc.onaudioprocess = e => {
     if (ocupado) return;
-    const data = e.inputBuffer.getChannelData(0);
-    let pico = 0;
-    for (let i = 0; i < data.length; i++){
-      const v = Math.abs(data[i]);
-      if (v > pico) pico = v;
-    }
+    const d = e.inputBuffer.getChannelData(0);
+    let pico = 0; for (let i=0;i<d.length;i++){ const v=Math.abs(d[i]); if (v>pico) pico=v; }
     const ahora = performance.now();
-    if (pico >= umbral && (ahora - ultimo) > 2500){
-      ultimo = ahora;
-      reaccionar();
-    }
+    if (pico >= umbral && (ahora - ultimo) > 2500){ ultimo = ahora; reaccionar(); }
   };
-
-  escuchando = true;
-  orb.classList.add("listen");
-  orb.textContent = "escuchando";
-  estado.textContent = "Escuchando... aplaude 👏";
+  escuchando = true; modo("ESCUCHANDO");
+  log("Reactor arc: estable","ok"); log("J.A.R.V.I.S en línea","ok");
+  $("#estado").textContent = "Escuchando… aplaude 👏 o pregúntame algo";
+  decir("Sistemas en línea.");
 }
 
-/* ====================== IA (Google Gemini) ====================== */
+/* arranque automático (o al primer gesto) */
+async function autoArranque(){
+  try{
+    if (navigator.permissions && navigator.permissions.query){
+      const st = await navigator.permissions.query({ name:"microphone" });
+      if (st.state === "granted"){ iniciar(); return; }
+    }
+  }catch(_){}
+  const h = () => iniciar();
+  ["pointerdown","keydown","touchstart"].forEach(ev => document.addEventListener(ev, h, { once:true }));
+}
+addEventListener("load", () => { setTimeout(autoArranque, 400); });
+
+/* ================= IA (Google Gemini, con respaldo de modelos) ================= */
 const KEY_LS = "jarvis_gemini_key";
 const getClave = () => localStorage.getItem(KEY_LS) || "";
+let modeloOK = localStorage.getItem("jarvis_modelo") || null;
 
-function actualizarPanelIA(){
+function panelIA(){
   const tiene = !!getClave();
-  $("#ia-config").style.display = tiene ? "none" : "block";
-  $("#ia-chat").style.display   = tiene ? "block" : "none";
+  $("#ia-config").classList.toggle("hidden", tiene);
+  $("#ia-chat").classList.toggle("hidden", !tiene);
 }
-
-$("#guardarClave").addEventListener("click", () => {
-  const k = $("#claveInput").value.trim();
-  if (!k) return;
-  localStorage.setItem(KEY_LS, k);
-  $("#claveInput").value = "";
-  actualizarPanelIA();
-  $("#ia-respuesta").textContent = "Clave guardada. Pregúntame lo que quieras.";
-});
-
-$("#borrarClave").addEventListener("click", () => {
-  localStorage.removeItem(KEY_LS);
-  actualizarPanelIA();
-});
-
+function respuesta(txt, err){
+  const r = $("#respuesta"); r.textContent = txt; r.classList.toggle("err", !!err);
+}
+async function llamar(modelo, texto){
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/"+modelo+":generateContent?key="+encodeURIComponent(getClave());
+  const body = {
+    system_instruction:{ parts:[{ text:
+      "Eres JARVIS, el asistente personal de Lucas, inspirado en Iron Man. Responde SIEMPRE en español, "
+      + "de forma breve y clara (2 a 4 frases), con un tono sereno, educado y elegante." }]},
+    contents:[{ parts:[{ text: texto }]}]
+  };
+  const r = await fetch(url,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+  const data = await r.json().catch(()=>({}));
+  return { ok:r.ok, status:r.status, data };
+}
 async function preguntarIA(texto){
-  if (!getClave()){ actualizarPanelIA(); return; }
+  if (!getClave()){ panelIA(); return; }
   if (!texto || !texto.trim()) return;
-  ocupado = true;                       // pausa el aplauso mientras responde
-  $("#ia-respuesta").textContent = "Pensando...";
+  ocupado = true; modo("PROCESANDO"); respuesta("Procesando consulta…");
+  const orden = modeloOK ? [modeloOK, ...MODELOS.filter(m=>m!==modeloOK)] : MODELOS.slice();
+  let err = "Sin respuesta.";
   try{
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-                MODELO_IA + ":generateContent?key=" + encodeURIComponent(getClave());
-    const body = {
-      system_instruction:{ parts:[{ text:
-        "Eres JARVIS, el asistente personal de Lucas, inspirado en Iron Man. " +
-        "Responde SIEMPRE en español, de forma breve y clara (2 a 4 frases), " +
-        "con un tono sereno, educado y elegante." }] },
-      contents:[{ parts:[{ text: texto }] }]
-    };
-    const r = await fetch(url, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await r.json();
-    if (!r.ok){
-      const msg = (data && data.error && data.error.message) ? data.error.message : ("Error " + r.status);
-      $("#ia-respuesta").textContent = "⚠️ " + msg;
-      return;
+    for (const m of orden){
+      try{
+        const { ok, status, data } = await llamar(m, texto);
+        if (ok){
+          modeloOK = m; localStorage.setItem("jarvis_modelo", m);
+          let txt = "Sin respuesta.";
+          try{ txt = data.candidates[0].content.parts.map(p=>p.text).join(" ").trim() || txt; }catch(_){}
+          respuesta(txt); log("IA ("+m+") respondió","ok");
+          await decir(txt); return;
+        }
+        err = (data && data.error && data.error.message) ? data.error.message : ("Error "+status);
+        if (status === 429 || /quota|exceeded|limit/i.test(err)) { log("Sin cupo en "+m+", probando otro…","gd"); continue; }
+        break; // error no de cuota (clave inválida, etc.)
+      }catch(e){ err = e.message; }
     }
-    let txt = "No he obtenido respuesta.";
-    try{ txt = data.candidates[0].content.parts[0].text; }catch(_){}
-    $("#ia-respuesta").textContent = txt;
-    await decir(txt);
-  }catch(e){
-    $("#ia-respuesta").textContent = "⚠️ No pude conectar con la IA: " + e.message;
-  }finally{
-    ultimo = performance.now();
-    ocupado = false;
-  }
+    respuesta("⚠️ " + err + "\n\nSi indica 'quota' o 'limit: 0', tu clave gratuita está sin cupo ahora mismo. "
+      + "Espera 1 minuto y reintenta, o crea una clave nueva en aistudio.google.com/apikey.", true);
+  } finally { ocupado = false; ultimo = performance.now(); modo(escuchando?"ESCUCHANDO":"EN ESPERA"); }
 }
 
+/* eventos IA */
+$("#guardarClave").addEventListener("click", () => {
+  const k = $("#claveInput").value.trim(); if (!k) return;
+  localStorage.setItem(KEY_LS, k); $("#claveInput").value = ""; panelIA();
+  respuesta("Clave guardada. Pregúntame lo que quieras.");
+});
+$("#borrarClave").addEventListener("click", () => { localStorage.removeItem(KEY_LS); panelIA(); });
 $("#preguntar").addEventListener("click", () => preguntarIA($("#pregunta").value));
-$("#pregunta").addEventListener("keydown", e => { if (e.key === "Enter") preguntarIA($("#pregunta").value); });
-
-/* Preguntar por voz */
+$("#pregunta").addEventListener("keydown", e => { if (e.key==="Enter") preguntarIA($("#pregunta").value); });
 $("#hablar").addEventListener("click", () => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){ $("#ia-respuesta").textContent = "Tu navegador no permite dictar; escribe la pregunta."; return; }
-  const rec = new SR();
-  rec.lang = "es-ES"; rec.interimResults = false; rec.maxAlternatives = 1;
-  ocupado = true;
-  $("#ia-respuesta").textContent = "🎤 Escuchando tu pregunta...";
-  rec.onresult = ev => {
-    const t = ev.results[0][0].transcript;
-    $("#pregunta").value = t;
-    preguntarIA(t);
-  };
-  rec.onerror = ev => {
-    $("#ia-respuesta").textContent = "No te he entendido (" + ev.error + "). Inténtalo otra vez.";
-    ultimo = performance.now();
-    ocupado = false;
-  };
+  if (!SR){ respuesta("Tu navegador no permite dictar; escribe la pregunta."); return; }
+  const rec = new SR(); rec.lang="es-ES"; rec.interimResults=false; rec.maxAlternatives=1;
+  ocupado = true; modo("ESCUCHANDO VOZ"); respuesta("🎤 Escuchando tu pregunta…");
+  rec.onresult = ev => { const t = ev.results[0][0].transcript; $("#pregunta").value = t; preguntarIA(t); };
+  rec.onerror = ev => { respuesta("No te he entendido ("+ev.error+"). Inténtalo otra vez.", true);
+    ocupado=false; ultimo=performance.now(); modo(escuchando?"ESCUCHANDO":"EN ESPERA"); };
   rec.start();
 });
 
-/* ---------- arranque ---------- */
-$("#activar").addEventListener("click", activar);
-if (typeof speechSynthesis !== "undefined"){
-  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-}
-actualizarPanelIA();
+/* ajustes */
+$("#toggleAjustes").addEventListener("click", () => {
+  const a = $("#ajustes"); a.style.display = (a.style.display==="flex") ? "none" : "flex";
+});
+$("#selVoz").addEventListener("change", e => localStorage.setItem("jarvis_voz", e.target.value));
+$("#probarVoz").addEventListener("click", () => decir("Soy JARVIS. Sistemas operativos al cien por cien."));
+$("#pitch").addEventListener("input", e => { pitch = parseFloat(e.target.value); $("#pitchval").textContent = pitch.toFixed(2); });
+$("#sens").addEventListener("input", e => { umbral = parseFloat(e.target.value); $("#sensval").textContent = umbral.toFixed(2); });
+
+panelIA();
+log("Sistema cargado","ok");
 </script>
 </body>
 </html>
