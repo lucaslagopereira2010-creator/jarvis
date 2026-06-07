@@ -10,11 +10,11 @@
   body{ margin:0; min-height:100vh; background:radial-gradient(circle at 50% 0%, #0f2030, #060a10);
         color:var(--txt); font-family:system-ui,"Segoe UI",Roboto,sans-serif;
         display:flex; flex-direction:column; align-items:center; justify-content:center;
-        gap:22px; padding:24px; text-align:center; }
+        gap:20px; padding:24px; text-align:center; }
   h1{ font-weight:800; letter-spacing:.32em; margin:0; color:var(--cyan);
       text-shadow:0 0 22px rgba(56,189,248,.6); }
   p.sub{ margin:0; opacity:.7; }
-  .orb{ width:150px; height:150px; border-radius:50%; border:3px solid var(--cyan);
+  .orb{ width:140px; height:140px; border-radius:50%; border:3px solid var(--cyan);
         display:flex; align-items:center; justify-content:center; font-size:.9rem; color:var(--cyan);
         box-shadow:0 0 40px rgba(56,189,248,.3) inset, 0 0 30px rgba(56,189,248,.35);
         transition:transform .08s ease, box-shadow .2s ease; }
@@ -22,15 +22,33 @@
   .orb.boom{ transform:scale(1.25);
              box-shadow:0 0 90px rgba(56,189,248,.95) inset, 0 0 70px rgba(56,189,248,.95); }
   @keyframes pulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-  #activar{ font-size:1.35rem; font-weight:700; padding:18px 38px; border:none; border-radius:999px;
+  #activar{ font-size:1.3rem; font-weight:700; padding:16px 34px; border:none; border-radius:999px;
             background:linear-gradient(135deg,#0ea5e9,#2563eb); color:#fff; cursor:pointer;
             box-shadow:0 0 30px rgba(56,189,248,.5); transition:transform .1s; }
   #activar:active{ transform:scale(.97); }
   #activar:disabled{ opacity:.5; cursor:default; }
-  #estado{ font-size:1.1rem; min-height:1.4em; }
+  #estado{ font-size:1.05rem; min-height:1.4em; }
   .row{ display:flex; align-items:center; gap:10px; opacity:.85; font-size:.9rem; }
   input[type=range]{ width:170px; }
-  #aviso{ max-width:540px; background:#7f1d1d; color:#fff; padding:12px 16px;
+
+  .panel{ width:100%; max-width:560px; background:rgba(15,32,48,.55);
+          border:1px solid rgba(56,189,248,.25); border-radius:16px; padding:18px;
+          display:flex; flex-direction:column; gap:12px; }
+  .panel-title{ font-weight:700; color:var(--cyan); }
+  .hint{ margin:0; font-size:.9rem; opacity:.85; }
+  .hint a{ color:var(--cyan); }
+  .iarow{ display:flex; gap:8px; flex-wrap:wrap; }
+  .iarow input{ flex:1 1 200px; min-width:0; padding:11px 12px; border-radius:10px;
+                border:1px solid rgba(148,163,184,.4); background:#0b1622; color:var(--txt); font-size:1rem; }
+  .iarow button{ padding:11px 16px; border:none; border-radius:10px; background:#2563eb; color:#fff;
+                 font-weight:700; cursor:pointer; }
+  .iarow button:active{ transform:scale(.97); }
+  #hablar{ background:#0ea5e9; }
+  #ia-respuesta{ min-height:1.2em; font-size:1.02rem; line-height:1.5; text-align:left; white-space:pre-wrap; }
+  .mini{ align-self:flex-start; background:none; border:none; color:#94a3b8; font-size:.8rem;
+         cursor:pointer; text-decoration:underline; padding:0; }
+
+  #aviso{ max-width:560px; background:#7f1d1d; color:#fff; padding:12px 16px;
           border-radius:12px; display:none; }
   #aviso b{ color:#fde68a; }
   .links{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
@@ -51,13 +69,35 @@
     <span id="sensval">0.25</span>
   </div>
 
+  <!-- ===== IA: pregúntale lo que sea ===== -->
+  <div class="panel">
+    <div class="panel-title">🤖 Pregúntale a JARVIS</div>
+    <div id="ia-config">
+      <p class="hint">Para que JARVIS responda preguntas, pega tu clave <b>gratuita</b> de Google Gemini
+        (<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">consíguela aquí en 1 minuto</a>).
+        Se guarda solo en este dispositivo.</p>
+      <div class="iarow">
+        <input type="password" id="claveInput" placeholder="Pega aquí tu API key de Google">
+        <button id="guardarClave">Guardar</button>
+      </div>
+    </div>
+    <div id="ia-chat" style="display:none;">
+      <div class="iarow">
+        <input type="text" id="pregunta" placeholder="Escribe tu pregunta...">
+        <button id="preguntar">Preguntar</button>
+        <button id="hablar" title="Preguntar por voz">🎤</button>
+      </div>
+      <div id="ia-respuesta"></div>
+      <button id="borrarClave" class="mini">Cambiar / borrar clave</button>
+    </div>
+  </div>
+
   <div id="aviso"></div>
   <div class="links" id="links"></div>
 
   <footer>
     Deja esta pestaña abierta para que JARVIS siga escuchando. Si las webs no se
-    abren solas la primera vez, permite las <b>ventanas emergentes</b> de esta página
-    (icono en la barra de direcciones) y vuelve a aplaudir.
+    abren solas la primera vez, permite las <b>ventanas emergentes</b> de esta página.
   </footer>
 
 <script>
@@ -67,22 +107,23 @@
 const SALUDO      = "Hola Lucas, bienvenido a casa, te espera un gran día";
 const URL_GEMINI  = "https://gemini.google.com/share/d2dfbce3971b";
 const URL_YOUTUBE = "https://youtu.be/Mm3Um3-kkpM?si=ZHmPi8yc2vw_tLy9";
+const MODELO_IA   = "gemini-2.0-flash";   // modelo de la IA (puedes cambiarlo)
 /* ============================================================== */
 
 const $ = s => document.querySelector(s);
 const orb = $("#orb"), estado = $("#estado"), aviso = $("#aviso");
 
-let umbral = 0.25;      // sensibilidad del aplauso
-let ocupado = false;    // true mientras JARVIS reacciona
+let umbral = 0.25;
+let ocupado = false;     // true mientras JARVIS reacciona o habla (pausa el aplauso)
 let escuchando = false;
-let ultimo = 0;         // momento del ultimo aplauso aceptado
+let ultimo = 0;
 
 $("#sens").addEventListener("input", e => {
   umbral = parseFloat(e.target.value);
   $("#sensval").textContent = umbral.toFixed(2);
 });
 
-/* --- Voz: usa el sintetizador del navegador, grave y en espanol --- */
+/* ---------- Voz del navegador (grave, en español) ---------- */
 function decir(texto){
   return new Promise(resolve => {
     try{
@@ -96,8 +137,8 @@ function decir(texto){
         voces.find(v => /es([-_])?ES/i.test(v.lang)) ||
         voces.find(v => /^es/i.test(v.lang));
       if (esp) u.voice = esp;
-      u.pitch = 0.4;   // tono grave (0 = muy grave, 1 = normal)
-      u.rate  = 0.92;  // un poco lento = mas solemne
+      u.pitch = 0.4;
+      u.rate  = 0.95;
       u.onend = resolve;
       u.onerror = resolve;
       speechSynthesis.speak(u);
@@ -105,16 +146,17 @@ function decir(texto){
   });
 }
 
+/* ---------- Aplauso: abrir las dos webs ---------- */
 function abrir(url){
   const w = window.open(url, "_blank");
-  return !!w;  // false si el navegador bloqueo la ventana
+  return !!w;
 }
-
 function mostrarFallback(){
   aviso.style.display = "block";
   aviso.innerHTML =
-    'El navegador bloqueó las ventanas emergentes. Pulsa el icono de la barra ' +
-    'de direcciones y elige <b>Permitir siempre</b>. Mientras, ábrelas a mano:';
+    'Chrome bloqueó las ventanas. Toca el icono de la barra de direcciones ' +
+    '(arriba, a la derecha) y elige <b>Permitir siempre</b>. Después se abrirán solas. ' +
+    'Por ahora, ábrelas a mano:';
   $("#links").innerHTML =
     '<a href="' + URL_GEMINI  + '" target="_blank" rel="noopener">Abrir Gemini</a>' +
     '<a href="' + URL_YOUTUBE + '" target="_blank" rel="noopener">Abrir YouTube</a>';
@@ -125,15 +167,11 @@ async function reaccionar(){
   ocupado = true;
   orb.classList.add("boom");
   estado.textContent = "👏 ¡Aplauso detectado!";
-
-  // 1) La voz
   await decir(SALUDO);
-  // 2) Gemini  3) YouTube
   const ok1 = abrir(URL_GEMINI);
   await new Promise(r => setTimeout(r, 400));
   const ok2 = abrir(URL_YOUTUBE);
   if (!ok1 || !ok2) mostrarFallback();
-
   setTimeout(() => {
     orb.classList.remove("boom");
     ultimo = performance.now();
@@ -142,10 +180,11 @@ async function reaccionar(){
   }, 1200);
 }
 
+/* ---------- Activar micrófono + detección del aplauso ---------- */
 async function activar(){
   $("#activar").disabled = true;
   estado.textContent = "Pidiendo permiso del micrófono...";
-  speechSynthesis.getVoices();  // precarga de voces
+  speechSynthesis.getVoices();
 
   let stream;
   try{
@@ -165,10 +204,10 @@ async function activar(){
   const src  = ctx.createMediaStreamSource(stream);
   const proc = ctx.createScriptProcessor(2048, 1, 1);
   const sink = ctx.createGain();
-  sink.gain.value = 0;                 // silencio: no devolvemos el micro a los altavoces
+  sink.gain.value = 0;
   src.connect(proc);
   proc.connect(sink);
-  sink.connect(ctx.destination);       // necesario para que 'proc' siga funcionando
+  sink.connect(ctx.destination);
 
   proc.onaudioprocess = (e) => {
     if (ocupado) return;
@@ -191,10 +230,98 @@ async function activar(){
   estado.textContent = "Escuchando... aplaude 👏";
 }
 
+/* ====================== IA (Google Gemini) ====================== */
+const KEY_LS = "jarvis_gemini_key";
+const getClave = () => localStorage.getItem(KEY_LS) || "";
+
+function actualizarPanelIA(){
+  const tiene = !!getClave();
+  $("#ia-config").style.display = tiene ? "none" : "block";
+  $("#ia-chat").style.display   = tiene ? "block" : "none";
+}
+
+$("#guardarClave").addEventListener("click", () => {
+  const k = $("#claveInput").value.trim();
+  if (!k) return;
+  localStorage.setItem(KEY_LS, k);
+  $("#claveInput").value = "";
+  actualizarPanelIA();
+  $("#ia-respuesta").textContent = "Clave guardada. Pregúntame lo que quieras.";
+});
+
+$("#borrarClave").addEventListener("click", () => {
+  localStorage.removeItem(KEY_LS);
+  actualizarPanelIA();
+});
+
+async function preguntarIA(texto){
+  if (!getClave()){ actualizarPanelIA(); return; }
+  if (!texto || !texto.trim()) return;
+  ocupado = true;                       // pausa el aplauso mientras responde
+  $("#ia-respuesta").textContent = "Pensando...";
+  try{
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+                MODELO_IA + ":generateContent?key=" + encodeURIComponent(getClave());
+    const body = {
+      system_instruction:{ parts:[{ text:
+        "Eres JARVIS, el asistente personal de Lucas, inspirado en Iron Man. " +
+        "Responde SIEMPRE en español, de forma breve y clara (2 a 4 frases), " +
+        "con un tono sereno, educado y elegante." }] },
+      contents:[{ parts:[{ text: texto }] }]
+    };
+    const r = await fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (!r.ok){
+      const msg = (data && data.error && data.error.message) ? data.error.message : ("Error " + r.status);
+      $("#ia-respuesta").textContent = "⚠️ " + msg;
+      return;
+    }
+    let txt = "No he obtenido respuesta.";
+    try{ txt = data.candidates[0].content.parts[0].text; }catch(_){}
+    $("#ia-respuesta").textContent = txt;
+    await decir(txt);
+  }catch(e){
+    $("#ia-respuesta").textContent = "⚠️ No pude conectar con la IA: " + e.message;
+  }finally{
+    ultimo = performance.now();
+    ocupado = false;
+  }
+}
+
+$("#preguntar").addEventListener("click", () => preguntarIA($("#pregunta").value));
+$("#pregunta").addEventListener("keydown", e => { if (e.key === "Enter") preguntarIA($("#pregunta").value); });
+
+/* Preguntar por voz */
+$("#hablar").addEventListener("click", () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){ $("#ia-respuesta").textContent = "Tu navegador no permite dictar; escribe la pregunta."; return; }
+  const rec = new SR();
+  rec.lang = "es-ES"; rec.interimResults = false; rec.maxAlternatives = 1;
+  ocupado = true;
+  $("#ia-respuesta").textContent = "🎤 Escuchando tu pregunta...";
+  rec.onresult = ev => {
+    const t = ev.results[0][0].transcript;
+    $("#pregunta").value = t;
+    preguntarIA(t);
+  };
+  rec.onerror = ev => {
+    $("#ia-respuesta").textContent = "No te he entendido (" + ev.error + "). Inténtalo otra vez.";
+    ultimo = performance.now();
+    ocupado = false;
+  };
+  rec.start();
+});
+
+/* ---------- arranque ---------- */
 $("#activar").addEventListener("click", activar);
 if (typeof speechSynthesis !== "undefined"){
   speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
 }
+actualizarPanelIA();
 </script>
 </body>
 </html>
