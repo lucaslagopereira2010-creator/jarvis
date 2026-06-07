@@ -1,0 +1,7 @@
+# Dependencias de JARVIS Clap (instalar con: pip install -r requirements.txt)
+sounddevice>=0.4.6     # escucha del microfono / deteccion del aplauso
+miniaudio>=1.59        # reproduccion del audio (la voz)
+edge-tts>=6.1.9        # voz gratuita es-ES-AlvaroNeural (masculina y grave)
+numpy>=1.24            # calculo del pico de sonido del aplauso
+python-dotenv>=1.0.0   # carga de las variables del archivo .env
+requests>=2.31         # llamadas a la API de ElevenLabs (opcional)

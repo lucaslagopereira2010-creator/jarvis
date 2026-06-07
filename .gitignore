@@ -1,0 +1,29 @@
+# ===========================================================
+#  Archivos que NO deben subirse al repositorio
+# ===========================================================
+
+# Secretos / configuracion local (API keys de ElevenLabs, etc.)
+.env
+
+# Voz generada (cache de audio)
+saludo.mp3
+*.mp3
+
+# Entornos virtuales de Python
+.venv/
+venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OpenJarvis, si decides clonarlo dentro de esta carpeta
+OpenJarvis/
+
+# Sistema operativo / editores
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
