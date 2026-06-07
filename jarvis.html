@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS - Activado por aplausos</title>
+<style>
+  :root{ --cyan:#38bdf8; --txt:#e2e8f0; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; background:radial-gradient(circle at 50% 0%, #0f2030, #060a10);
+        color:var(--txt); font-family:system-ui,"Segoe UI",Roboto,sans-serif;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        gap:22px; padding:24px; text-align:center; }
+  h1{ font-weight:800; letter-spacing:.32em; margin:0; color:var(--cyan);
+      text-shadow:0 0 22px rgba(56,189,248,.6); }
+  p.sub{ margin:0; opacity:.7; }
+  .orb{ width:150px; height:150px; border-radius:50%; border:3px solid var(--cyan);
+        display:flex; align-items:center; justify-content:center; font-size:.9rem; color:var(--cyan);
+        box-shadow:0 0 40px rgba(56,189,248,.3) inset, 0 0 30px rgba(56,189,248,.35);
+        transition:transform .08s ease, box-shadow .2s ease; }
+  .orb.listen{ animation:pulse 2s infinite; }
+  .orb.boom{ transform:scale(1.25);
+             box-shadow:0 0 90px rgba(56,189,248,.95) inset, 0 0 70px rgba(56,189,248,.95); }
+  @keyframes pulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+  #activar{ font-size:1.35rem; font-weight:700; padding:18px 38px; border:none; border-radius:999px;
+            background:linear-gradient(135deg,#0ea5e9,#2563eb); color:#fff; cursor:pointer;
+            box-shadow:0 0 30px rgba(56,189,248,.5); transition:transform .1s; }
+  #activar:active{ transform:scale(.97); }
+  #activar:disabled{ opacity:.5; cursor:default; }
+  #estado{ font-size:1.1rem; min-height:1.4em; }
+  .row{ display:flex; align-items:center; gap:10px; opacity:.85; font-size:.9rem; }
+  input[type=range]{ width:170px; }
+  #aviso{ max-width:540px; background:#7f1d1d; color:#fff; padding:12px 16px;
+          border-radius:12px; display:none; }
+  #aviso b{ color:#fde68a; }
+  .links{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .links a{ color:var(--cyan); font-weight:700; }
+  footer{ opacity:.55; font-size:.8rem; max-width:560px; line-height:1.5; }
+</style>
+</head>
+<body>
+  <h1>J.A.R.V.I.S</h1>
+  <p class="sub">Aplaude y reaccionaré</p>
+  <div class="orb" id="orb">en espera</div>
+  <button id="activar">ACTIVAR JARVIS&nbsp;👏</button>
+  <div id="estado">Pulsa "Activar" y permite el micrófono.</div>
+
+  <div class="row">
+    Sensibilidad
+    <input type="range" id="sens" min="0.08" max="0.6" step="0.01" value="0.25">
+    <span id="sensval">0.25</span>
+  </div>
+
+  <div id="aviso"></div>
+  <div class="links" id="links"></div>
+
+  <footer>
+    Deja esta pestaña abierta para que JARVIS siga escuchando. Si las webs no se
+    abren solas la primera vez, permite las <b>ventanas emergentes</b> de esta página
+    (icono en la barra de direcciones) y vuelve a aplaudir.
+  </footer>
+
+<script>
+"use strict";
+
+/* ====== LO QUE HACE JARVIS (puedes editar estos valores) ====== */
+const SALUDO      = "Hola Lucas, bienvenido a casa, te espera un gran día";
+const URL_GEMINI  = "https://gemini.google.com/share/d2dfbce3971b";
+const URL_YOUTUBE = "https://youtu.be/Mm3Um3-kkpM?si=ZHmPi8yc2vw_tLy9";
+/* ============================================================== */
+
+const $ = s => document.querySelector(s);
+const orb = $("#orb"), estado = $("#estado"), aviso = $("#aviso");
+
+let umbral = 0.25;      // sensibilidad del aplauso
+let ocupado = false;    // true mientras JARVIS reacciona
+let escuchando = false;
+let ultimo = 0;         // momento del ultimo aplauso aceptado
+
+$("#sens").addEventListener("input", e => {
+  umbral = parseFloat(e.target.value);
+  $("#sensval").textContent = umbral.toFixed(2);
+});
+
+/* --- Voz: usa el sintetizador del navegador, grave y en espanol --- */
+function decir(texto){
+  return new Promise(resolve => {
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = "es-ES";
+      const voces = speechSynthesis.getVoices();
+      const esp =
+        voces.find(v => /es([-_])?ES/i.test(v.lang) &&
+                        /(male|masc|alvaro|jorge|diego|enrique|pablo)/i.test(v.name)) ||
+        voces.find(v => /es([-_])?ES/i.test(v.lang)) ||
+        voces.find(v => /^es/i.test(v.lang));
+      if (esp) u.voice = esp;
+      u.pitch = 0.4;   // tono grave (0 = muy grave, 1 = normal)
+      u.rate  = 0.92;  // un poco lento = mas solemne
+      u.onend = resolve;
+      u.onerror = resolve;
+      speechSynthesis.speak(u);
+    }catch(_){ resolve(); }
+  });
+}
+
+function abrir(url){
+  const w = window.open(url, "_blank");
+  return !!w;  // false si el navegador bloqueo la ventana
+}
+
+function mostrarFallback(){
+  aviso.style.display = "block";
+  aviso.innerHTML =
+    'El navegador bloqueó las ventanas emergentes. Pulsa el icono de la barra ' +
+    'de direcciones y elige <b>Permitir siempre</b>. Mientras, ábrelas a mano:';
+  $("#links").innerHTML =
+    '<a href="' + URL_GEMINI  + '" target="_blank" rel="noopener">Abrir Gemini</a>' +
+    '<a href="' + URL_YOUTUBE + '" target="_blank" rel="noopener">Abrir YouTube</a>';
+}
+
+async function reaccionar(){
+  if (ocupado) return;
+  ocupado = true;
+  orb.classList.add("boom");
+  estado.textContent = "👏 ¡Aplauso detectado!";
+
+  // 1) La voz
+  await decir(SALUDO);
+  // 2) Gemini  3) YouTube
+  const ok1 = abrir(URL_GEMINI);
+  await new Promise(r => setTimeout(r, 400));
+  const ok2 = abrir(URL_YOUTUBE);
+  if (!ok1 || !ok2) mostrarFallback();
+
+  setTimeout(() => {
+    orb.classList.remove("boom");
+    ultimo = performance.now();
+    ocupado = false;
+    if (escuchando) estado.textContent = "Escuchando... aplaude 👏";
+  }, 1200);
+}
+
+async function activar(){
+  $("#activar").disabled = true;
+  estado.textContent = "Pidiendo permiso del micrófono...";
+  speechSynthesis.getVoices();  // precarga de voces
+
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:false }
+    });
+  }catch(e){
+    estado.textContent = "❌ No pude usar el micrófono: " + e.message;
+    $("#activar").disabled = false;
+    return;
+  }
+
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  if (ctx.state === "suspended") await ctx.resume();
+
+  const src  = ctx.createMediaStreamSource(stream);
+  const proc = ctx.createScriptProcessor(2048, 1, 1);
+  const sink = ctx.createGain();
+  sink.gain.value = 0;                 // silencio: no devolvemos el micro a los altavoces
+  src.connect(proc);
+  proc.connect(sink);
+  sink.connect(ctx.destination);       // necesario para que 'proc' siga funcionando
+
+  proc.onaudioprocess = (e) => {
+    if (ocupado) return;
+    const data = e.inputBuffer.getChannelData(0);
+    let pico = 0;
+    for (let i = 0; i < data.length; i++){
+      const v = Math.abs(data[i]);
+      if (v > pico) pico = v;
+    }
+    const ahora = performance.now();
+    if (pico >= umbral && (ahora - ultimo) > 2500){
+      ultimo = ahora;
+      reaccionar();
+    }
+  };
+
+  escuchando = true;
+  orb.classList.add("listen");
+  orb.textContent = "escuchando";
+  estado.textContent = "Escuchando... aplaude 👏";
+}
+
+$("#activar").addEventListener("click", activar);
+if (typeof speechSynthesis !== "undefined"){
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>
