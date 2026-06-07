@@ -6,112 +6,100 @@
 <title>J.A.R.V.I.S // Sistema</title>
 <style>
   :root{
-    --cyan:#36e0ff; --cyan-soft:#7fe9ff; --gold:#ffb347; --red:#ff5d6c;
-    --txt:#cfeffb; --bg0:#01060d; --bg1:#04101c;
+    --cyan:#36e0ff; --cyan-soft:#7fe9ff; --gold:#ffb347; --red:#ff5d6c; --green:#4dffa6;
+    --txt:#cfeffb; --bg0:#01060d;
     --mono:"SFMono-Regular",Consolas,"Roboto Mono",ui-monospace,monospace;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; }
-  body{
-    margin:0; background:var(--bg0); color:var(--txt); overflow:hidden;
-    font-family:var(--mono); letter-spacing:.05em;
-    -webkit-font-smoothing:antialiased;
-  }
-  /* fondo animado */
+  body{ margin:0; background:var(--bg0); color:var(--txt); overflow:hidden;
+    font-family:var(--mono); letter-spacing:.04em; -webkit-font-smoothing:antialiased; }
   #fondo{ position:fixed; inset:0; z-index:0; }
   .scan{ position:fixed; inset:0; z-index:5; pointer-events:none;
     background:repeating-linear-gradient(0deg, rgba(54,224,255,.035) 0 1px, transparent 1px 3px);
     mix-blend-mode:screen; animation:scanmove 8s linear infinite; }
   @keyframes scanmove{ from{background-position:0 0} to{background-position:0 600px} }
-  .vign{ position:fixed; inset:0; z-index:6; pointer-events:none;
-    box-shadow:inset 0 0 240px 40px rgba(0,0,0,.85); }
-
-  /* marco HUD */
-  .frame{ position:fixed; inset:14px; z-index:7; pointer-events:none;
-    border:1px solid rgba(54,224,255,.18); border-radius:10px; }
-  .corner{ position:fixed; width:40px; height:40px; border:2px solid var(--cyan); z-index:8;
-    pointer-events:none; filter:drop-shadow(0 0 6px var(--cyan)); }
+  .vign{ position:fixed; inset:0; z-index:6; pointer-events:none; box-shadow:inset 0 0 240px 40px rgba(0,0,0,.85); }
+  .frame{ position:fixed; inset:14px; z-index:7; pointer-events:none; border:1px solid rgba(54,224,255,.18); border-radius:10px; }
+  .corner{ position:fixed; width:38px; height:38px; border:2px solid var(--cyan); z-index:8; pointer-events:none; filter:drop-shadow(0 0 6px var(--cyan)); }
   .corner.tl{ top:10px; left:10px; border-right:0; border-bottom:0; }
   .corner.tr{ top:10px; right:10px; border-left:0; border-bottom:0; }
   .corner.bl{ bottom:10px; left:10px; border-right:0; border-top:0; }
   .corner.br{ bottom:10px; right:10px; border-left:0; border-top:0; }
 
-  .ui{ position:relative; z-index:10; height:100%; display:flex; flex-direction:column;
-       padding:26px 30px; gap:10px; }
-
+  .ui{ position:relative; z-index:10; height:100%; display:flex; flex-direction:column; padding:24px 28px; gap:10px; }
   header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
-  .panel-hud{ border:1px solid rgba(54,224,255,.25); background:rgba(4,16,28,.55);
-    border-radius:8px; padding:10px 14px; backdrop-filter:blur(2px); }
-  .lbl{ color:var(--cyan); font-size:.62rem; opacity:.8; letter-spacing:.22em; }
-  #syslog{ font-size:.72rem; line-height:1.5; min-width:240px; min-height:90px; color:var(--cyan-soft); }
+  .panel-hud{ border:1px solid rgba(54,224,255,.25); background:rgba(4,16,28,.55); border-radius:8px; padding:10px 14px; backdrop-filter:blur(2px); }
+  .lbl{ color:var(--cyan); font-size:.6rem; opacity:.85; letter-spacing:.22em; }
+  #syslog{ font-size:.7rem; line-height:1.5; min-width:230px; min-height:88px; color:var(--cyan-soft); }
   #syslog .ok{ color:var(--cyan); } #syslog .gd{ color:var(--gold); }
   .right{ text-align:right; }
-  #reloj{ font-size:1.5rem; color:#eafaff; text-shadow:0 0 12px rgba(54,224,255,.6); }
-  #fecha{ font-size:.66rem; opacity:.7; }
-  .ver{ color:var(--gold); font-size:.62rem; letter-spacing:.3em; margin-top:6px; }
+  #reloj{ font-size:1.45rem; color:#eafaff; text-shadow:0 0 12px rgba(54,224,255,.6); }
+  #fecha{ font-size:.64rem; opacity:.7; }
+  .ver{ color:var(--gold); font-size:.6rem; letter-spacing:.3em; margin-top:6px; }
   .bar{ height:6px; width:170px; background:rgba(54,224,255,.12); border-radius:4px; overflow:hidden; margin-top:6px; }
   .bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--gold)); transition:width .08s; }
 
-  /* centro: reactor */
-  main{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
-  .reactor{ position:relative; width:min(58vmin,420px); height:min(58vmin,420px); }
+  main{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:0; }
+  .reactor{ position:relative; width:min(50vmin,380px); height:min(50vmin,380px); }
   .reactor canvas{ position:absolute; inset:0; width:100%; height:100%; }
   .ring{ position:absolute; inset:0; border-radius:50%; border:1px solid rgba(54,224,255,.25); }
   .ring.r1{ inset:6%; border-style:dashed; border-color:rgba(54,224,255,.4); animation:spin 18s linear infinite; }
-  .ring.r2{ inset:16%; border-width:2px; border-color:rgba(255,179,71,.35);
-            border-top-color:transparent; border-bottom-color:transparent; animation:spin 9s linear infinite reverse; }
+  .ring.r2{ inset:16%; border-width:2px; border-color:rgba(255,179,71,.35); border-top-color:transparent; border-bottom-color:transparent; animation:spin 9s linear infinite reverse; }
   .ring.r3{ inset:26%; border-style:dotted; border-color:rgba(54,224,255,.5); animation:spin 26s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg) } }
-  .core-label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
-    justify-content:center; text-align:center; pointer-events:none; }
-  .core-label .big{ font-size:1.05rem; letter-spacing:.34em; color:#eafaff; text-shadow:0 0 16px var(--cyan); }
-  .core-label .small{ font-size:.62rem; color:var(--cyan); opacity:.85; margin-top:4px; }
-  #estado{ font-size:.84rem; color:var(--cyan-soft); min-height:1.3em; letter-spacing:.12em; }
+  .core-label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; pointer-events:none; }
+  .core-label .big{ font-size:1rem; letter-spacing:.34em; color:#eafaff; text-shadow:0 0 16px var(--cyan); }
+  .core-label .small{ font-size:.6rem; color:var(--cyan); opacity:.85; margin-top:4px; }
+  #estado{ font-size:.8rem; color:var(--cyan-soft); min-height:1.3em; letter-spacing:.1em; }
 
-  /* consola IA */
-  .consola{ z-index:10; border:1px solid rgba(54,224,255,.28); background:rgba(2,12,22,.72);
-    border-radius:10px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
-  .consola .lbl-row{ display:flex; justify-content:space-between; align-items:center; }
-  .row-in{ display:flex; gap:8px; flex-wrap:wrap; }
-  .row-in input{ flex:1 1 220px; min-width:0; background:#020c16; color:#eafaff;
-    border:1px solid rgba(54,224,255,.35); border-radius:8px; padding:11px 12px; font-family:var(--mono); font-size:.95rem; }
+  .consola{ z-index:10; border:1px solid rgba(54,224,255,.28); background:rgba(2,12,22,.74);
+    border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+  .lbl-row{ display:flex; justify-content:space-between; align-items:center; }
+  .row-in{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .row-in input[type=text],.row-in input[type=password]{ flex:1 1 220px; min-width:0; background:#020c16; color:#eafaff;
+    border:1px solid rgba(54,224,255,.35); border-radius:10px; padding:13px 14px; font-family:var(--mono); font-size:.95rem; }
   .row-in input::placeholder{ color:rgba(207,239,251,.4); }
-  button{ font-family:var(--mono); cursor:pointer; border:none; border-radius:8px; font-weight:700;
-    letter-spacing:.08em; transition:transform .08s, box-shadow .2s; }
-  button:active{ transform:scale(.96); }
-  .btn{ padding:11px 16px; background:linear-gradient(135deg,#0a7ea4,#1456c4); color:#eafaff;
-    box-shadow:0 0 16px rgba(54,224,255,.35); }
-  .btn.mic{ background:linear-gradient(135deg,#0a7ea4,#0aa0c4); }
+  button{ font-family:var(--mono); cursor:pointer; border:none; border-radius:8px; font-weight:700; letter-spacing:.06em; transition:transform .08s, box-shadow .2s, background .2s; }
+  button:active{ transform:scale(.95); }
+  .btn{ padding:12px 16px; background:linear-gradient(135deg,#0a7ea4,#1456c4); color:#eafaff; box-shadow:0 0 16px rgba(54,224,255,.3); }
   .btn.gold{ background:linear-gradient(135deg,#b46a12,#e0941f); color:#1a0f00; }
-  #respuesta{ font-size:.95rem; line-height:1.55; white-space:pre-wrap; color:#eafaff; min-height:1.2em;
-    border-left:2px solid var(--cyan); padding-left:12px; }
+  /* botones circulares enviar / grabar */
+  .icon-btn{ width:50px; height:50px; flex:0 0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:1.25rem; border:1px solid rgba(54,224,255,.55);
+    background:radial-gradient(circle at 32% 28%, #0d5f86, #04101c); color:var(--cyan);
+    box-shadow:0 0 16px rgba(54,224,255,.35); }
+  .icon-btn:hover{ box-shadow:0 0 24px rgba(54,224,255,.6); }
+  .icon-btn.send{ color:#eafaff; }
+  .icon-btn.rec.on{ border-color:var(--red); color:#fff; background:radial-gradient(circle,#c41e2a,#3a0a0e); animation:recpulse 1s infinite; }
+  @keyframes recpulse{ 0%,100%{ box-shadow:0 0 10px rgba(255,93,108,.6) } 50%{ box-shadow:0 0 26px rgba(255,93,108,1) } }
+  #respuesta{ font-size:.95rem; line-height:1.55; white-space:pre-wrap; color:#eafaff; min-height:1.2em; border-left:2px solid var(--cyan); padding-left:12px; }
   #respuesta.err{ border-left-color:var(--red); color:#ffd7db; }
-  .hint{ font-size:.72rem; opacity:.8; } .hint a{ color:var(--cyan); }
+  .hint{ font-size:.72rem; opacity:.82; margin:0; } .hint a{ color:var(--cyan); }
   .link-btn{ background:none; color:#8fb6c7; font-size:.72rem; text-decoration:underline; padding:0; }
 
-  /* ajustes */
-  #ajustes{ display:none; flex-direction:column; gap:10px; border-top:1px dashed rgba(54,224,255,.2); padding-top:10px; }
+  /* AJUSTES rediseñado */
+  #ajustes{ display:none; flex-direction:column; gap:14px; }
+  .aj-sec{ border:1px solid rgba(54,224,255,.2); border-radius:10px; padding:12px 14px; background:rgba(3,14,25,.5); display:flex; flex-direction:column; gap:10px; }
+  .aj-tit{ color:var(--gold); font-size:.66rem; letter-spacing:.2em; }
   .aj-row{ display:flex; align-items:center; gap:10px; font-size:.78rem; flex-wrap:wrap; }
-  .aj-row label{ color:var(--cyan); min-width:96px; }
-  select,input[type=range]{ font-family:var(--mono); }
-  select{ background:#020c16; color:#eafaff; border:1px solid rgba(54,224,255,.35); border-radius:6px; padding:7px; max-width:260px; }
-  input[type=range]{ accent-color:var(--cyan); }
+  .aj-row label{ color:var(--cyan); min-width:92px; }
+  select{ background:#020c16; color:#eafaff; border:1px solid rgba(54,224,255,.35); border-radius:8px; padding:9px; max-width:280px; flex:1 1 180px; }
+  input[type=range]{ accent-color:var(--cyan); flex:1 1 120px; }
+  .pill{ font-size:.62rem; padding:3px 8px; border-radius:999px; border:1px solid var(--cyan); color:var(--cyan); }
+  .pill.on{ background:var(--cyan); color:#012; }
 
-  #aviso{ z-index:10; background:rgba(127,29,29,.85); border:1px solid var(--red); color:#fff;
-    padding:10px 14px; border-radius:8px; font-size:.82rem; display:none; }
+  #aviso{ z-index:10; background:rgba(127,29,29,.85); border:1px solid var(--red); color:#fff; padding:10px 14px; border-radius:8px; font-size:.82rem; display:none; }
   #aviso b{ color:var(--gold); }
   .links{ display:flex; gap:14px; flex-wrap:wrap; } .links a{ color:var(--cyan); font-weight:700; font-size:.82rem; }
 
-  /* overlay de arranque */
-  #arranque{ position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; gap:18px;
-    align-items:center; justify-content:center; background:radial-gradient(circle,#03121f 0%,#01060d 70%);
-    cursor:pointer; text-align:center; padding:24px; }
-  #arranque h1{ font-size:clamp(2rem,9vw,5rem); letter-spacing:.4em; margin:0; color:var(--cyan);
-    text-shadow:0 0 30px rgba(54,224,255,.7); }
+  #arranque{ position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; gap:18px; align-items:center; justify-content:center;
+    background:radial-gradient(circle,#03121f 0%,#01060d 70%); cursor:pointer; text-align:center; padding:24px; }
+  #arranque h1{ font-size:clamp(2rem,9vw,5rem); letter-spacing:.4em; margin:0; color:var(--cyan); text-shadow:0 0 30px rgba(54,224,255,.7); }
   #arranque p{ color:var(--cyan-soft); letter-spacing:.3em; font-size:.8rem; animation:blink 1.4s infinite; }
   @keyframes blink{ 50%{opacity:.25} }
   .hidden{ display:none !important; }
-  @media (max-width:680px){ .ui{ padding:18px; } #syslog{ min-width:0; } header{ font-size:.9em; } }
+  @media (max-width:680px){ .ui{ padding:16px; } #syslog{ min-width:0; } header{ font-size:.9em; } }
 </style>
 </head>
 <body>
@@ -132,7 +120,7 @@
         <div class="lbl">HORA LOCAL</div>
         <div id="reloj">--:--:--</div>
         <div id="fecha">—</div>
-        <div class="ver">J.A.R.V.I.S · MARK III</div>
+        <div class="ver">J.A.R.V.I.S · MARK IV</div>
       </div>
     </header>
 
@@ -140,10 +128,7 @@
       <div class="reactor">
         <canvas id="reactor"></canvas>
         <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
-        <div class="core-label">
-          <div class="big">J.A.R.V.I.S</div>
-          <div class="small" id="coreMode">EN ESPERA</div>
-        </div>
+        <div class="core-label"><div class="big">J.A.R.V.I.S</div><div class="small" id="coreMode">EN ESPERA</div></div>
       </div>
       <div id="estado">Inicializando núcleo…</div>
     </main>
@@ -154,42 +139,47 @@
         <button class="link-btn" id="toggleAjustes">⚙ AJUSTES</button>
       </div>
 
-      <div id="ia-config">
-        <p class="hint">Para responder preguntas necesito una clave <b>gratuita</b> de Google Gemini
-          (<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">consíguela aquí</a>). Se guarda solo en este equipo.</p>
-        <div class="row-in">
-          <input type="password" id="claveInput" placeholder="Pega aquí tu API key de Google…">
-          <button class="btn gold" id="guardarClave">GUARDAR</button>
-        </div>
+      <div class="row-in">
+        <input type="text" id="pregunta" placeholder="Escribe tu pregunta…">
+        <button class="icon-btn send" id="preguntar" title="Enviar">➤</button>
+        <button class="icon-btn rec" id="hablar" title="Hablar">🎤</button>
       </div>
+      <div id="respuesta"></div>
 
-      <div id="ia-chat" class="hidden">
-        <div class="row-in">
-          <input type="text" id="pregunta" placeholder="Escribe tu pregunta…">
-          <button class="btn" id="preguntar">PREGUNTAR</button>
-          <button class="btn mic" id="hablar" title="Preguntar por voz">🎤</button>
-        </div>
-        <div id="respuesta"></div>
-      </div>
-
+      <!-- AJUSTES -->
       <div id="ajustes">
-        <div class="aj-row">
-          <label>Voz</label>
-          <select id="selVoz"></select>
-          <button class="btn" id="probarVoz" style="padding:7px 12px;">Probar</button>
+        <div class="aj-sec">
+          <div class="aj-tit">🧠 INTELIGENCIA ARTIFICIAL</div>
+          <div class="row-in">
+            <input type="password" id="claveInput" placeholder="API key de Google Gemini u OpenRouter…">
+            <button class="btn gold" id="guardarClave">GUARDAR</button>
+          </div>
+          <p class="hint" id="provInfo">Detecta sola el proveedor. Gratis: Gemini
+            (<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">clave aquí</a>)
+            u OpenRouter (<a href="https://openrouter.ai/keys" target="_blank" rel="noopener">clave aquí</a>, más estable).</p>
+          <div class="aj-row">
+            <span class="pill" id="memPill">MEMORIA</span>
+            <button class="link-btn" id="borrarMemoria">Borrar memoria</button>
+            <button class="link-btn" id="borrarClave">Borrar clave</button>
+            <button class="link-btn" id="reiniciarSaludo">Reactivar saludo de bienvenida</button>
+          </div>
         </div>
-        <div class="aj-row">
-          <label>Gravedad</label>
-          <input type="range" id="pitch" min="0" max="1" step="0.05" value="0.5">
-          <span id="pitchval">0.50</span>
+
+        <div class="aj-sec">
+          <div class="aj-tit">🔊 VOZ</div>
+          <div class="aj-row"><label>Voz del sistema</label><select id="selVoz"></select>
+            <button class="icon-btn" id="probarVoz" style="width:42px;height:42px;font-size:.9rem;" title="Probar">▶</button></div>
+          <div class="aj-row"><label>Tono / gravedad</label><input type="range" id="pitch" min="0.3" max="1.2" step="0.05" value="0.9"><span id="pitchval">0.90</span></div>
+          <p class="hint">Para una voz <b>humana de cine</b> (opcional) pega tu ElevenLabs:</p>
+          <div class="row-in">
+            <input type="password" id="elevenKey" placeholder="ElevenLabs API key (opcional)">
+            <input type="text" id="elevenVoice" placeholder="Voice ID">
+          </div>
         </div>
-        <div class="aj-row">
-          <label>Sensibilidad</label>
-          <input type="range" id="sens" min="0.08" max="0.6" step="0.01" value="0.22">
-          <span id="sensval">0.22</span>
-        </div>
-        <div class="aj-row">
-          <button class="link-btn" id="borrarClave">Cambiar / borrar clave de la IA</button>
+
+        <div class="aj-sec">
+          <div class="aj-tit">🎚 MICRÓFONO</div>
+          <div class="aj-row"><label>Sensibilidad</label><input type="range" id="sens" min="0.08" max="0.6" step="0.01" value="0.22"><span id="sensval">0.22</span></div>
         </div>
       </div>
 
@@ -198,10 +188,7 @@
     </div>
   </div>
 
-  <div id="arranque">
-    <h1>J.A.R.V.I.S</h1>
-    <p id="arranqueTxt">TOCA EN CUALQUIER PARTE PARA INICIAR</p>
-  </div>
+  <div id="arranque"><h1>J.A.R.V.I.S</h1><p id="arranqueTxt">TOCA EN CUALQUIER PARTE PARA INICIAR</p></div>
 
 <script>
 "use strict";
@@ -209,313 +196,250 @@
 const SALUDO      = "Hola Lucas, bienvenido a casa, te espera un gran día";
 const URL_GEMINI  = "https://gemini.google.com/share/d2dfbce3971b";
 const URL_YOUTUBE = "https://youtu.be/Mm3Um3-kkpM?si=ZHmPi8yc2vw_tLy9";
-/* La IA prueba estos modelos en orden si alguno está sin cupo (limit:0 / 429). */
-const MODELOS = ["gemini-2.0-flash","gemini-2.0-flash-lite","gemini-1.5-flash","gemini-1.5-flash-8b"];
+const PERSONA = "Eres JARVIS, el asistente personal de Lucas, inspirado en Iron Man. "
+  + "Responde SIEMPRE en español, de forma breve y clara (2 a 4 frases), con tono sereno, educado y elegante. "
+  + "Recuerda lo que habéis hablado en esta conversación.";
+const MODELOS_GEMINI = ["gemini-2.0-flash","gemini-2.0-flash-lite","gemini-1.5-flash","gemini-1.5-flash-8b"];
+const MODELOS_OR = ["meta-llama/llama-3.3-70b-instruct:free","google/gemini-2.0-flash-exp:free",
+  "deepseek/deepseek-chat-v3-0324:free","qwen/qwen-2.5-72b-instruct:free","mistralai/mistral-small-3.2-24b-instruct:free"];
 /* ================================================= */
 
 const $ = s => document.querySelector(s);
-let umbral = 0.22, pitch = 0.5;
-let ocupado = false, escuchando = false, iniciado = false, ultimo = 0;
-let analyser = null, freq = null;
+const LS = { key:"jarvis_ai_key", voz:"jarvis_voz", pitch:"jarvis_pitch", sens:"jarvis_sens",
+  saludo:"jarvis_saludado", hist:"jarvis_hist", model:"jarvis_model",
+  elevenKey:"jarvis_eleven_key", elevenVoice:"jarvis_eleven_voice" };
 
-/* ---------------- Registro del sistema (typewriter) ---------------- */
-const syslog = $("#syslog");
-function log(txt, cls){
-  const line = document.createElement("div");
-  if (cls) line.className = cls;
-  syslog.appendChild(line);
-  let i = 0;
-  (function type(){
-    line.textContent = "> " + txt.slice(0, i);
-    if (i++ <= txt.length) setTimeout(type, 12);
-  })();
-  while (syslog.childElementCount > 6) syslog.removeChild(syslog.firstChild);
-}
+let umbral = parseFloat(localStorage.getItem(LS.sens)) || 0.22;
+let pitch  = parseFloat(localStorage.getItem(LS.pitch)) || 0.9;
+let ocupado=false, escuchando=false, iniciado=false, ultimo=0;
+let analyser=null, freq=null;
+let historial = [];
+try{ historial = JSON.parse(localStorage.getItem(LS.hist)) || []; }catch(_){ historial = []; }
 
-/* ---------------- Reloj ---------------- */
-function tic(){
-  const d = new Date();
-  const p = n => String(n).padStart(2,"0");
-  $("#reloj").textContent = p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
-  $("#fecha").textContent = d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"}).toUpperCase();
-}
+/* ---------------- Registro / reloj ---------------- */
+const syslog=$("#syslog");
+function log(t,c){ const l=document.createElement("div"); if(c)l.className=c; syslog.appendChild(l);
+  let i=0; (function ty(){ l.textContent="> "+t.slice(0,i); if(i++<=t.length) setTimeout(ty,12); })();
+  while(syslog.childElementCount>6) syslog.removeChild(syslog.firstChild); }
+function tic(){ const d=new Date(), p=n=>String(n).padStart(2,"0");
+  $("#reloj").textContent=p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());
+  $("#fecha").textContent=d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"}).toUpperCase(); }
 setInterval(tic,1000); tic();
 
-/* ---------------- Fondo: partículas + rejilla ---------------- */
-(function fondo(){
-  const c = $("#fondo"), x = c.getContext("2d");
-  let W,H,parts;
-  function resize(){
-    W = c.width = innerWidth; H = c.height = innerHeight;
-    parts = Array.from({length: Math.min(90, Math.floor(W*H/16000))}, () => ({
-      x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, r:Math.random()*1.6+.4
-    }));
-  }
-  addEventListener("resize", resize); resize();
-  (function draw(){
-    requestAnimationFrame(draw);
-    x.clearRect(0,0,W,H);
-    x.strokeStyle = "rgba(54,224,255,.05)"; x.lineWidth = 1;
-    for (let gx=0; gx<W; gx+=46){ x.beginPath(); x.moveTo(gx,0); x.lineTo(gx,H); x.stroke(); }
-    for (let gy=0; gy<H; gy+=46){ x.beginPath(); x.moveTo(0,gy); x.lineTo(W,gy); x.stroke(); }
-    for (const p of parts){
-      p.x=(p.x+p.vx+W)%W; p.y=(p.y+p.vy+H)%H;
-      x.fillStyle = "rgba(54,224,255,.5)";
-      x.beginPath(); x.arc(p.x,p.y,p.r,0,7); x.fill();
-    }
+/* ---------------- Fondo ---------------- */
+(function(){ const c=$("#fondo"),x=c.getContext("2d"); let W,H,ps;
+  function rz(){ W=c.width=innerWidth; H=c.height=innerHeight;
+    ps=Array.from({length:Math.min(90,Math.floor(W*H/16000))},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.6+.4})); }
+  addEventListener("resize",rz); rz();
+  (function dr(){ requestAnimationFrame(dr); x.clearRect(0,0,W,H);
+    x.strokeStyle="rgba(54,224,255,.05)"; x.lineWidth=1;
+    for(let g=0;g<W;g+=46){ x.beginPath(); x.moveTo(g,0); x.lineTo(g,H); x.stroke(); }
+    for(let g=0;g<H;g+=46){ x.beginPath(); x.moveTo(0,g); x.lineTo(W,g); x.stroke(); }
+    for(const p of ps){ p.x=(p.x+p.vx+W)%W; p.y=(p.y+p.vy+H)%H; x.fillStyle="rgba(54,224,255,.5)"; x.beginPath(); x.arc(p.x,p.y,p.r,0,7); x.fill(); }
   })();
 })();
 
-/* ---------------- Reactor arc (visualizador de audio) ---------------- */
-(function reactor(){
-  const c = $("#reactor"), x = c.getContext("2d");
-  function size(){ const s = c.clientWidth*devicePixelRatio; c.width=s; c.height=s; }
-  addEventListener("resize", size); setTimeout(size,50); size();
-  let rot = 0;
-  (function draw(){
-    requestAnimationFrame(draw);
-    const w=c.width, h=c.height, cx=w/2, cy=h/2, R=Math.min(cx,cy);
-    x.clearRect(0,0,w,h);
-    rot += 0.0035;
-    let nivel = 0;
-    const bars = 96;
-    if (analyser){
-      analyser.getByteFrequencyData(freq);
-      const n = Math.floor(analyser.frequencyBinCount*0.55);
-      for (let i=0;i<n;i++) nivel += freq[i];
-      nivel = Math.min(1, nivel/(n*180));
-    }
-    const flare = ocupado ? 1 : 0;
-    const base = R*0.56;
-    for (let i=0;i<bars;i++){
-      const f = analyser ? freq[Math.floor(i/bars*analyser.frequencyBinCount*0.55)]/255 : 0.05+0.05*Math.sin(i+rot*30);
-      const ang = (i/bars)*Math.PI*2 + rot;
-      const len = R*0.06 + f*R*0.34;
-      const x1 = cx+Math.cos(ang)*base, y1 = cy+Math.sin(ang)*base;
-      const x2 = cx+Math.cos(ang)*(base+len), y2 = cy+Math.sin(ang)*(base+len);
-      x.strokeStyle = flare
-        ? `rgba(255,179,71,${0.4+f*0.6})`
-        : `rgba(54,224,255,${0.3+f*0.7})`;
-      x.lineWidth = Math.max(1, R*0.012);
-      x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke();
-    }
-    // anillo
-    x.strokeStyle = flare ? "rgba(255,179,71,.7)" : "rgba(54,224,255,.55)";
-    x.lineWidth = Math.max(1.5, R*0.012);
+/* ---------------- Reactor ---------------- */
+(function(){ const c=$("#reactor"),x=c.getContext("2d");
+  function sz(){ const s=c.clientWidth*devicePixelRatio; c.width=s; c.height=s; }
+  addEventListener("resize",sz); setTimeout(sz,60); sz(); let rot=0;
+  (function dr(){ requestAnimationFrame(dr); const w=c.width,h=c.height,cx=w/2,cy=h/2,R=Math.min(cx,cy);
+    x.clearRect(0,0,w,h); rot+=0.0035; let nivel=0; const bars=96;
+    if(analyser){ analyser.getByteFrequencyData(freq); const n=Math.floor(analyser.frequencyBinCount*0.55);
+      for(let i=0;i<n;i++) nivel+=freq[i]; nivel=Math.min(1,nivel/(n*180)); }
+    const flare=ocupado?1:0, base=R*0.56;
+    for(let i=0;i<bars;i++){ const f=analyser?freq[Math.floor(i/bars*analyser.frequencyBinCount*0.55)]/255:0.05+0.05*Math.sin(i+rot*30);
+      const a=(i/bars)*Math.PI*2+rot, len=R*0.06+f*R*0.34;
+      const x1=cx+Math.cos(a)*base,y1=cy+Math.sin(a)*base,x2=cx+Math.cos(a)*(base+len),y2=cy+Math.sin(a)*(base+len);
+      x.strokeStyle=flare?`rgba(255,179,71,${0.4+f*0.6})`:`rgba(54,224,255,${0.3+f*0.7})`; x.lineWidth=Math.max(1,R*0.012);
+      x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke(); }
+    x.strokeStyle=flare?"rgba(255,179,71,.7)":"rgba(54,224,255,.55)"; x.lineWidth=Math.max(1.5,R*0.012);
     x.beginPath(); x.arc(cx,cy,base,0,7); x.stroke();
-    // núcleo pulsante
-    const pr = R*(0.30 + nivel*0.16 + flare*0.06);
-    const g = x.createRadialGradient(cx,cy,0,cx,cy,pr);
-    const col = flare ? "255,179,71" : "54,224,255";
-    g.addColorStop(0, `rgba(${col},${0.95})`);
-    g.addColorStop(0.5, `rgba(${col},${0.35})`);
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    x.fillStyle = g; x.beginPath(); x.arc(cx,cy,pr,0,7); x.fill();
-    // nivel barra header
-    $("#nivel").style.width = Math.round((analyser?nivel:0)*100) + "%";
+    const pr=R*(0.30+nivel*0.16+flare*0.06), col=flare?"255,179,71":"54,224,255";
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,pr); g.addColorStop(0,`rgba(${col},.95)`); g.addColorStop(.5,`rgba(${col},.35)`); g.addColorStop(1,"rgba(0,0,0,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,pr,0,7); x.fill();
+    $("#nivel").style.width=Math.round((analyser?nivel:0)*100)+"%";
   })();
 })();
 
-/* ---------------- Voz (TTS del navegador) ---------------- */
-let voces = [];
-function cargarVoces(){
-  voces = speechSynthesis.getVoices();
-  const sel = $("#selVoz"); if (!sel) return;
-  if (!voces.length) return;
-  const guardada = localStorage.getItem("jarvis_voz");
-  sel.innerHTML = "";
-  voces.forEach((v,i) => {
-    const o = document.createElement("option");
-    o.value = v.name; o.textContent = `${v.name} — ${v.lang}`;
-    sel.appendChild(o);
-  });
-  const def = guardada || mejorVozMasculina();
-  if (def) sel.value = def;
-}
-function mejorVozMasculina(){
-  const m = voces.find(v => /es([-_])?ES/i.test(v.lang) && /(male|masc|álvaro|alvaro|jorge|diego|enrique|pablo|carlos|miguel)/i.test(v.name))
-        || voces.find(v => /es([-_])?(ES|MX|US|419)/i.test(v.lang) && /(male|masc|jorge|diego|juan|carlos)/i.test(v.name))
-        || voces.find(v => /es([-_])?ES/i.test(v.lang))
-        || voces.find(v => /^es/i.test(v.lang));
-  return m ? m.name : (voces[0] && voces[0].name);
-}
-function decir(texto){
-  return new Promise(res => {
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(texto);
-      const nombre = ($("#selVoz") && $("#selVoz").value) || mejorVozMasculina();
-      const v = voces.find(x => x.name === nombre);
-      if (v){ u.voice = v; u.lang = v.lang; } else { u.lang = "es-ES"; }
-      u.pitch = pitch;     // gravedad
-      u.rate  = 0.95;
-      u.onend = res; u.onerror = res;
-      speechSynthesis.speak(u);
-    }catch(_){ res(); }
-  });
-}
-speechSynthesis.onvoiceschanged = cargarVoces; cargarVoces();
+/* ---------------- Voz ---------------- */
+let voces=[];
+const elevenKey   = () => (localStorage.getItem(LS.elevenKey)||"").trim();
+const elevenVoice = () => (localStorage.getItem(LS.elevenVoice)||"").trim();
 
-/* ---------------- Aplauso → reacción ---------------- */
-function abrir(url){ const w = window.open(url,"_blank"); return !!w; }
-function mostrarFallback(){
-  $("#aviso").style.display = "block";
-  $("#aviso").innerHTML = 'Chrome bloqueó las ventanas. Toca el icono de la barra de direcciones '
-    + '(arriba a la derecha) y elige <b>Permitir siempre</b>. Después se abren solas. Por ahora, a mano:';
-  $("#links").innerHTML = '<a href="'+URL_GEMINI+'" target="_blank" rel="noopener">Abrir Gemini</a>'
-    + '<a href="'+URL_YOUTUBE+'" target="_blank" rel="noopener">Abrir YouTube</a>';
+function vozNatural(v){ return !v.localService; }
+function mejorVoz(){
+  const guardada=localStorage.getItem(LS.voz);
+  if(guardada && voces.some(v=>v.name===guardada)) return guardada;
+  const esNat=voces.filter(v=>!v.localService && /^es/i.test(v.lang));
+  const cand = esNat.find(v=>/(male|jorge|diego|juan|carlos|enrique|miguel|álvaro|alvaro|pablo)/i.test(v.name))
+            || esNat[0] || voces.find(v=>/^es/i.test(v.lang)) || voces.find(v=>!v.localService) || voces[0];
+  return cand && cand.name;
 }
-function modo(t){ $("#coreMode").textContent = t; }
+function cargarVoces(){
+  voces=speechSynthesis.getVoices(); const sel=$("#selVoz"); if(!sel||!voces.length) return;
+  const orden=[...voces].sort((a,b)=>{ const sa=(/^es/i.test(a.lang)?0:2)+(a.localService?1:0), sb=(/^es/i.test(b.lang)?0:2)+(b.localService?1:0); return sa-sb; });
+  sel.innerHTML="";
+  orden.forEach(v=>{ const o=document.createElement("option"); o.value=v.name;
+    o.textContent=`${v.name} — ${v.lang}${v.localService?" (local)":" ✓ natural"}`; sel.appendChild(o); });
+  sel.value=mejorVoz()||sel.value;
+}
+speechSynthesis.onvoiceschanged=cargarVoces; cargarVoces();
+
+async function decirEleven(texto){
+  const r=await fetch("https://api.elevenlabs.io/v1/text-to-speech/"+encodeURIComponent(elevenVoice()),{
+    method:"POST", headers:{ "xi-api-key":elevenKey(), "Content-Type":"application/json", "Accept":"audio/mpeg" },
+    body:JSON.stringify({ text:texto, model_id:"eleven_multilingual_v2",
+      voice_settings:{ stability:0.4, similarity_boost:0.85, style:0.3, use_speaker_boost:true } }) });
+  if(!r.ok) throw new Error("ElevenLabs "+r.status);
+  const url=URL.createObjectURL(await r.blob()); const a=new Audio(url);
+  await new Promise(res=>{ a.onended=res; a.onerror=res; a.play().catch(res); }); URL.revokeObjectURL(url);
+}
+function decirNavegador(texto){
+  return new Promise(res=>{ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(texto);
+    const nombre=($("#selVoz")&&$("#selVoz").value)||mejorVoz(); const v=voces.find(x=>x.name===nombre);
+    if(v){ u.voice=v; u.lang=v.lang; } else u.lang="es-ES"; u.pitch=pitch; u.rate=1.0;
+    u.onend=res; u.onerror=res; speechSynthesis.speak(u); }catch(_){ res(); } });
+}
+async function decir(texto){
+  if(elevenKey() && elevenVoice()){ try{ await decirEleven(texto); return; }catch(e){ log("ElevenLabs falló, uso voz del navegador","gd"); } }
+  await decirNavegador(texto);
+}
+
+/* ---------------- Aplauso ---------------- */
+function abrir(url){ try{ const w=window.open(url,"_blank","noopener"); return !!w; }catch(_){ return false; } }
+function mostrarFallback(cuales){ $("#aviso").style.display="block";
+  $("#aviso").innerHTML='Chrome bloqueó alguna ventana. Toca el icono de la barra de direcciones (arriba a la derecha) y elige <b>Permitir siempre</b>. Mientras, ábrelas a mano:';
+  $("#links").innerHTML='<a href="'+URL_GEMINI+'" target="_blank" rel="noopener">Abrir Gemini</a><a href="'+URL_YOUTUBE+'" target="_blank" rel="noopener">Abrir YouTube</a>'; }
+function modo(t){ $("#coreMode").textContent=t; }
+const yaSaludado=()=>localStorage.getItem(LS.saludo)==="1";
 
 async function reaccionar(){
-  if (ocupado) return;
-  ocupado = true; modo("ACTIVADO"); $("#estado").textContent = "👏 APLAUSO DETECTADO — EJECUTANDO PROTOCOLO";
-  log("Aplauso detectado","gd"); log("Saludo de bienvenida…");
-  await decir(SALUDO);
+  if(ocupado) return; ocupado=true; modo("ACTIVADO");
+  $("#estado").textContent="👏 APLAUSO DETECTADO"; log("Aplauso detectado","gd");
+  if(!yaSaludado()){ log("Saludo de bienvenida (solo la 1ª vez)…"); await decir(SALUDO); localStorage.setItem(LS.saludo,"1"); }
   log("Abriendo enlaces…");
-  const ok1 = abrir(URL_GEMINI);
-  await new Promise(r=>setTimeout(r,400));
-  const ok2 = abrir(URL_YOUTUBE);
-  if (!ok1 || !ok2) mostrarFallback();
+  const ok1=abrir(URL_GEMINI), ok2=abrir(URL_YOUTUBE);   // ambos a la vez (sin retardo)
+  if(!ok1||!ok2) mostrarFallback();
   setTimeout(()=>{ ocupado=false; ultimo=performance.now(); modo("ESCUCHANDO");
-    if (escuchando) $("#estado").textContent = "Escuchando… aplaude 👏 o pregúntame algo"; }, 1200);
+    if(escuchando) $("#estado").textContent="Escuchando… aplaude 👏 o pregúntame algo"; }, 1200);
 }
 
-/* ---------------- Inicialización del micrófono ---------------- */
+/* ---------------- Micrófono ---------------- */
 async function iniciar(){
-  if (iniciado) return; iniciado = true;
-  $("#arranque").classList.add("hidden");
-  log("Inicializando núcleo","ok"); log("Solicitando micrófono…");
-  $("#estado").textContent = "Concediendo acceso al micrófono…";
+  if(iniciado) return; iniciado=true; $("#arranque").classList.add("hidden");
+  log("Inicializando núcleo","ok"); log("Solicitando micrófono…"); $("#estado").textContent="Concediendo acceso al micrófono…";
   let stream;
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:false }});
-  }catch(e){
-    iniciado = false;
-    $("#estado").textContent = "❌ Micrófono no disponible: " + e.message;
-    $("#arranque").classList.remove("hidden");
-    $("#arranqueTxt").textContent = "PERMITE EL MICRÓFONO Y VUELVE A TOCAR";
-    return;
-  }
-  const AC = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AC();
-  if (ctx.state === "suspended") { try{ await ctx.resume(); }catch(_){} }
-  const src = ctx.createMediaStreamSource(stream);
-  analyser = ctx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.78;
-  freq = new Uint8Array(analyser.frequencyBinCount);
-  src.connect(analyser);
-  const proc = ctx.createScriptProcessor(2048,1,1);
-  const sink = ctx.createGain(); sink.gain.value = 0;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}}); }
+  catch(e){ iniciado=false; $("#estado").textContent="❌ Micrófono no disponible: "+e.message;
+    $("#arranque").classList.remove("hidden"); $("#arranqueTxt").textContent="PERMITE EL MICRÓFONO Y VUELVE A TOCAR"; return; }
+  const AC=window.AudioContext||window.webkitAudioContext; const ctx=new AC();
+  if(ctx.state==="suspended"){ try{ await ctx.resume(); }catch(_){} }
+  const src=ctx.createMediaStreamSource(stream);
+  analyser=ctx.createAnalyser(); analyser.fftSize=256; analyser.smoothingTimeConstant=0.78; freq=new Uint8Array(analyser.frequencyBinCount); src.connect(analyser);
+  const proc=ctx.createScriptProcessor(2048,1,1); const sink=ctx.createGain(); sink.gain.value=0;
   src.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
-  proc.onaudioprocess = e => {
-    if (ocupado) return;
-    const d = e.inputBuffer.getChannelData(0);
-    let pico = 0; for (let i=0;i<d.length;i++){ const v=Math.abs(d[i]); if (v>pico) pico=v; }
-    const ahora = performance.now();
-    if (pico >= umbral && (ahora - ultimo) > 2500){ ultimo = ahora; reaccionar(); }
-  };
-  escuchando = true; modo("ESCUCHANDO");
-  log("Reactor arc: estable","ok"); log("J.A.R.V.I.S en línea","ok");
-  $("#estado").textContent = "Escuchando… aplaude 👏 o pregúntame algo";
-  decir("Sistemas en línea.");
+  proc.onaudioprocess=e=>{ if(ocupado) return; const d=e.inputBuffer.getChannelData(0); let pico=0;
+    for(let i=0;i<d.length;i++){ const v=Math.abs(d[i]); if(v>pico)pico=v; }
+    const ah=performance.now(); if(pico>=umbral && (ah-ultimo)>2500){ ultimo=ah; reaccionar(); } };
+  escuchando=true; modo("ESCUCHANDO"); log("Reactor arc: estable","ok"); log("J.A.R.V.I.S en línea","ok");
+  $("#estado").textContent="Escuchando… aplaude 👏 o pregúntame algo";
+  if(!yaSaludado()) decir("Sistemas en línea.");
 }
-
-/* arranque automático (o al primer gesto) */
 async function autoArranque(){
-  try{
-    if (navigator.permissions && navigator.permissions.query){
-      const st = await navigator.permissions.query({ name:"microphone" });
-      if (st.state === "granted"){ iniciar(); return; }
-    }
-  }catch(_){}
-  const h = () => iniciar();
-  ["pointerdown","keydown","touchstart"].forEach(ev => document.addEventListener(ev, h, { once:true }));
+  try{ if(navigator.permissions&&navigator.permissions.query){ const st=await navigator.permissions.query({name:"microphone"});
+    if(st.state==="granted"){ iniciar(); return; } } }catch(_){}
+  const h=()=>iniciar(); ["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,h,{once:true}));
 }
-addEventListener("load", () => { setTimeout(autoArranque, 400); });
+addEventListener("load",()=>setTimeout(autoArranque,400));
 
-/* ================= IA (Google Gemini, con respaldo de modelos) ================= */
-const KEY_LS = "jarvis_gemini_key";
-const getClave = () => localStorage.getItem(KEY_LS) || "";
-let modeloOK = localStorage.getItem("jarvis_modelo") || null;
+/* ================= IA (Gemini / OpenRouter) + memoria ================= */
+const getClave=()=>(localStorage.getItem(LS.key)||"").trim();
+let modeloOK=localStorage.getItem(LS.model)||null;
+function proveedor(k){ if(/^sk-or-/i.test(k)) return "openrouter"; if(/^AIza/.test(k)) return "gemini"; return k?"gemini":null; }
+function respuesta(t,err){ const r=$("#respuesta"); r.textContent=t; r.classList.toggle("err",!!err); }
+function guardarHist(){ historial=historial.slice(-16); localStorage.setItem(LS.hist,JSON.stringify(historial)); }
 
-function panelIA(){
-  const tiene = !!getClave();
-  $("#ia-config").classList.toggle("hidden", tiene);
-  $("#ia-chat").classList.toggle("hidden", !tiene);
+async function llamarGemini(modelo,pregunta){
+  const contents=historial.map(h=>({role:h.role==="assistant"?"model":"user",parts:[{text:h.text}]}));
+  contents.push({role:"user",parts:[{text:pregunta}]});
+  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+modelo+":generateContent?key="+encodeURIComponent(getClave()),{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ system_instruction:{parts:[{text:PERSONA}]}, contents, generationConfig:{maxOutputTokens:320,temperature:0.7} }) });
+  const data=await r.json().catch(()=>({})); let txt=null;
+  try{ txt=data.candidates[0].content.parts.map(p=>p.text).join(" ").trim(); }catch(_){}
+  return { ok:r.ok&&!!txt, status:r.status, txt, err:(data&&data.error&&data.error.message)||("Error "+r.status) };
 }
-function respuesta(txt, err){
-  const r = $("#respuesta"); r.textContent = txt; r.classList.toggle("err", !!err);
+async function llamarOR(modelo,pregunta){
+  const messages=[{role:"system",content:PERSONA}, ...historial.map(h=>({role:h.role,content:h.text})), {role:"user",content:pregunta}];
+  const r=await fetch("https://openrouter.ai/api/v1/chat/completions",{
+    method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+getClave()},
+    body:JSON.stringify({ model:modelo, messages, max_tokens:320, temperature:0.7 }) });
+  const data=await r.json().catch(()=>({})); let txt=null;
+  try{ txt=data.choices[0].message.content.trim(); }catch(_){}
+  return { ok:r.ok&&!!txt, status:r.status, txt, err:(data&&data.error&&(data.error.message||data.error))||("Error "+r.status) };
 }
-async function llamar(modelo, texto){
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/"+modelo+":generateContent?key="+encodeURIComponent(getClave());
-  const body = {
-    system_instruction:{ parts:[{ text:
-      "Eres JARVIS, el asistente personal de Lucas, inspirado en Iron Man. Responde SIEMPRE en español, "
-      + "de forma breve y clara (2 a 4 frases), con un tono sereno, educado y elegante." }]},
-    contents:[{ parts:[{ text: texto }]}]
-  };
-  const r = await fetch(url,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
-  const data = await r.json().catch(()=>({}));
-  return { ok:r.ok, status:r.status, data };
-}
-async function preguntarIA(texto){
-  if (!getClave()){ panelIA(); return; }
-  if (!texto || !texto.trim()) return;
-  ocupado = true; modo("PROCESANDO"); respuesta("Procesando consulta…");
-  const orden = modeloOK ? [modeloOK, ...MODELOS.filter(m=>m!==modeloOK)] : MODELOS.slice();
-  let err = "Sin respuesta.";
+async function preguntarIA(pregunta){
+  const clave=getClave();
+  if(!clave){ respuesta("Añade tu API key en ⚙ AJUSTES para activar la IA."); $("#ajustes").style.display="flex"; return; }
+  if(!pregunta||!pregunta.trim()) return;
+  ocupado=true; modo("PROCESANDO"); respuesta("Procesando consulta…"); $("#pregunta").value="";
+  const prov=proveedor(clave);
+  const lista=prov==="openrouter"?MODELOS_OR:MODELOS_GEMINI;
+  const orden=modeloOK&&lista.includes(modeloOK)?[modeloOK,...lista.filter(m=>m!==modeloOK)]:lista.slice();
+  const fn=prov==="openrouter"?llamarOR:llamarGemini; let err="Sin respuesta.";
   try{
-    for (const m of orden){
+    for(const m of orden){
       try{
-        const { ok, status, data } = await llamar(m, texto);
-        if (ok){
-          modeloOK = m; localStorage.setItem("jarvis_modelo", m);
-          let txt = "Sin respuesta.";
-          try{ txt = data.candidates[0].content.parts.map(p=>p.text).join(" ").trim() || txt; }catch(_){}
-          respuesta(txt); log("IA ("+m+") respondió","ok");
-          await decir(txt); return;
-        }
-        err = (data && data.error && data.error.message) ? data.error.message : ("Error "+status);
-        if (status === 429 || /quota|exceeded|limit/i.test(err)) { log("Sin cupo en "+m+", probando otro…","gd"); continue; }
-        break; // error no de cuota (clave inválida, etc.)
-      }catch(e){ err = e.message; }
+        const res=await fn(m,pregunta);
+        if(res.ok){ modeloOK=m; localStorage.setItem(LS.model,m);
+          historial.push({role:"user",text:pregunta}); historial.push({role:"assistant",text:res.txt}); guardarHist();
+          respuesta(res.txt); log("IA ("+m.split("/").pop()+") respondió","ok"); await decir(res.txt); return; }
+        err=res.err;
+        if(res.status===401||res.status===403||/api key|invalid|unauthor|permission|no auth/i.test(String(err))){ break; }
+        log("Sin cupo/no disponible: "+m.split("/").pop()+"…","gd");
+      }catch(e){ err=e.message; }
     }
-    respuesta("⚠️ " + err + "\n\nSi indica 'quota' o 'limit: 0', tu clave gratuita está sin cupo ahora mismo. "
-      + "Espera 1 minuto y reintenta, o crea una clave nueva en aistudio.google.com/apikey.", true);
-  } finally { ocupado = false; ultimo = performance.now(); modo(escuchando?"ESCUCHANDO":"EN ESPERA"); }
+    respuesta("⚠️ "+err+"\n\nSi pone 'quota'/'limit: 0', tu clave gratis está sin cupo. Prueba una clave de OpenRouter (más estable) en ⚙ AJUSTES, espera 1 min, o crea otra clave.", true);
+  } finally { ocupado=false; ultimo=performance.now(); modo(escuchando?"ESCUCHANDO":"EN ESPERA"); }
 }
 
-/* eventos IA */
-$("#guardarClave").addEventListener("click", () => {
-  const k = $("#claveInput").value.trim(); if (!k) return;
-  localStorage.setItem(KEY_LS, k); $("#claveInput").value = ""; panelIA();
-  respuesta("Clave guardada. Pregúntame lo que quieras.");
-});
-$("#borrarClave").addEventListener("click", () => { localStorage.removeItem(KEY_LS); panelIA(); });
-$("#preguntar").addEventListener("click", () => preguntarIA($("#pregunta").value));
-$("#pregunta").addEventListener("keydown", e => { if (e.key==="Enter") preguntarIA($("#pregunta").value); });
-$("#hablar").addEventListener("click", () => {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){ respuesta("Tu navegador no permite dictar; escribe la pregunta."); return; }
-  const rec = new SR(); rec.lang="es-ES"; rec.interimResults=false; rec.maxAlternatives=1;
-  ocupado = true; modo("ESCUCHANDO VOZ"); respuesta("🎤 Escuchando tu pregunta…");
-  rec.onresult = ev => { const t = ev.results[0][0].transcript; $("#pregunta").value = t; preguntarIA(t); };
-  rec.onerror = ev => { respuesta("No te he entendido ("+ev.error+"). Inténtalo otra vez.", true);
+/* ---------------- Eventos UI ---------------- */
+function refrescarMem(){ $("#memPill").classList.toggle("on",historial.length>0);
+  $("#memPill").textContent= historial.length? ("MEMORIA · "+(historial.length/2|0)+" turnos") : "MEMORIA VACÍA"; }
+$("#guardarClave").addEventListener("click",()=>{ const k=$("#claveInput").value.trim(); if(!k) return;
+  localStorage.setItem(LS.key,k); $("#claveInput").value=""; modeloOK=null;
+  const p=proveedor(k); $("#provInfo").innerHTML="✓ Proveedor detectado: <b>"+(p==="openrouter"?"OpenRouter":"Google Gemini")+"</b>. Ya puedes preguntar.";
+  respuesta("Clave guardada. Pregúntame lo que quieras."); });
+$("#borrarClave").addEventListener("click",()=>{ localStorage.removeItem(LS.key); respuesta("Clave borrada."); });
+$("#borrarMemoria").addEventListener("click",()=>{ historial=[]; guardarHist(); refrescarMem(); respuesta("Memoria borrada."); });
+$("#reiniciarSaludo").addEventListener("click",()=>{ localStorage.removeItem(LS.saludo); respuesta("Volveré a darte la bienvenida en el próximo aplauso."); });
+$("#preguntar").addEventListener("click",()=>preguntarIA($("#pregunta").value));
+$("#pregunta").addEventListener("keydown",e=>{ if(e.key==="Enter") preguntarIA($("#pregunta").value); });
+$("#hablar").addEventListener("click",()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ respuesta("Tu navegador no permite dictar; escribe la pregunta."); return; }
+  const rec=new SR(); rec.lang="es-ES"; rec.interimResults=false; rec.maxAlternatives=1;
+  ocupado=true; modo("ESCUCHANDO VOZ"); $("#hablar").classList.add("on"); respuesta("🎤 Escuchando tu pregunta…");
+  rec.onresult=ev=>{ const t=ev.results[0][0].transcript; $("#pregunta").value=t; $("#hablar").classList.remove("on"); preguntarIA(t); };
+  rec.onerror=ev=>{ $("#hablar").classList.remove("on"); respuesta("No te he entendido ("+ev.error+"). Inténtalo otra vez.",true);
     ocupado=false; ultimo=performance.now(); modo(escuchando?"ESCUCHANDO":"EN ESPERA"); };
-  rec.start();
+  rec.onend=()=>$("#hablar").classList.remove("on"); rec.start();
 });
+$("#toggleAjustes").addEventListener("click",()=>{ const a=$("#ajustes"); a.style.display=(a.style.display==="flex")?"none":"flex"; refrescarMem(); });
+$("#selVoz").addEventListener("change",e=>localStorage.setItem(LS.voz,e.target.value));
+$("#probarVoz").addEventListener("click",()=>decir("Soy JARVIS, el asistente de Lucas. ¿En qué puedo ayudarte?"));
+$("#pitch").addEventListener("input",e=>{ pitch=parseFloat(e.target.value); $("#pitchval").textContent=pitch.toFixed(2); localStorage.setItem(LS.pitch,e.target.value); });
+$("#sens").addEventListener("input",e=>{ umbral=parseFloat(e.target.value); $("#sensval").textContent=umbral.toFixed(2); localStorage.setItem(LS.sens,e.target.value); });
+$("#elevenKey").addEventListener("change",e=>localStorage.setItem(LS.elevenKey,e.target.value.trim()));
+$("#elevenVoice").addEventListener("change",e=>localStorage.setItem(LS.elevenVoice,e.target.value.trim()));
 
-/* ajustes */
-$("#toggleAjustes").addEventListener("click", () => {
-  const a = $("#ajustes"); a.style.display = (a.style.display==="flex") ? "none" : "flex";
-});
-$("#selVoz").addEventListener("change", e => localStorage.setItem("jarvis_voz", e.target.value));
-$("#probarVoz").addEventListener("click", () => decir("Soy JARVIS. Sistemas operativos al cien por cien."));
-$("#pitch").addEventListener("input", e => { pitch = parseFloat(e.target.value); $("#pitchval").textContent = pitch.toFixed(2); });
-$("#sens").addEventListener("input", e => { umbral = parseFloat(e.target.value); $("#sensval").textContent = umbral.toFixed(2); });
-
-panelIA();
-log("Sistema cargado","ok");
+/* estado inicial de los controles */
+$("#pitch").value=pitch; $("#pitchval").textContent=pitch.toFixed(2);
+$("#sens").value=umbral; $("#sensval").textContent=umbral.toFixed(2);
+$("#elevenKey").value=elevenKey(); $("#elevenVoice").value=elevenVoice();
+if(getClave()){ const p=proveedor(getClave()); $("#provInfo").innerHTML="✓ Proveedor: <b>"+(p==="openrouter"?"OpenRouter":"Google Gemini")+"</b>."; }
+refrescarMem(); log("Sistema cargado","ok");
 </script>
 </body>
 </html>
